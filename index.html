@@ -3,37 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Bất Phương Trình Bậc Nhất</title>
+    <title>Hệ Bất Phương Trình Bậc Nhất - MAKE MATH EZ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { 
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc;
+            background-color: #f1f5f9;
             overflow-y: auto; 
             overflow-x: hidden;
         }
 
-        /* Hiệu ứng trượt mượt mà cho vùng nhập liệu */
+        /* Hiệu ứng trượt cho Panel */
         #dataPanelWrapper {
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
-            max-height: 2000px; /* Đủ lớn để chứa nhiều hàng */
+            max-height: 2500px;
             opacity: 1;
             overflow: hidden;
         }
         #dataPanelWrapper.collapsed {
             max-height: 0;
             opacity: 0;
-            margin-top: 0;
             margin-bottom: 0;
         }
 
         input:focus { outline: none; }
-        canvas { touch-action: none; cursor: crosshair; }
+        canvas { 
+            touch-action: none; /* Tránh cuộn trang khi vuốt trên canvas */
+            cursor: crosshair; 
+        }
         
         .tool-btn.active {
-            background-color: #eff6ff; 
-            color: #2563eb; 
+            background-color: #dbeafe; 
+            color: #1d4ed8; 
             border-color: #bfdbfe; 
         }
 
@@ -45,15 +47,16 @@
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen">
 
-    <div class="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col gap-5 flex-grow">
+    <div class="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col gap-4 flex-grow">
 
-        <!-- 1. VÙNG DỮ LIỆU ĐỘNG (Có thể thu gọn) -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col shrink-0 transition-all">
-            <!-- Header -->
-            <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center z-10 rounded-t-xl">
-                <h1 class="text-lg md:text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
-                    Hệ Bất Phương Trình
+        <!-- 1. VÙNG DỮ LIỆU ĐỘNG (Phía trên) -->
+        <div class="bg-white rounded-xl shadow-md border border-slate-200 flex flex-col shrink-0 transition-all z-10 relative">
+            <!-- Header Panel -->
+            <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center rounded-t-xl">
+                <h1 class="text-xl md:text-2xl font-extrabold text-blue-700 flex items-center gap-2 tracking-tight">
+                    <span class="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-lg transform -rotate-3">&Sigma;</span>
+                    MAKE MATH EZ
+                    <span class="hidden md:inline text-slate-400 font-medium text-sm ml-2 font-normal tracking-normal border-l border-slate-300 pl-3">Hệ Bất Phương Trình</span>
                 </h1>
                 <button id="toggleBtn" class="flex items-center gap-2 px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-600 text-sm font-semibold rounded-lg border border-slate-300 transition-colors shadow-sm">
                     <span id="toggleText">Thu gọn</span>
@@ -61,24 +64,24 @@
                 </button>
             </div>
 
-            <!-- Content Panel -->
+            <!-- Wrapper ẩn/hiện -->
             <div id="dataPanelWrapper">
                 <div class="p-4 md:p-5 flex flex-col gap-4">
-                    <!-- Hướng dẫn -->
-                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-800 flex items-start md:items-center gap-2">
-                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5 md:mt-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span>Nhập các bất phương trình. Kéo thả điểm <strong>M(x,y)</strong> trên đồ thị để kiểm tra trực tiếp tọa độ ở cột phải.</span>
+                    <!-- Grid Titles (Chỉ hiện trên desktop) -->
+                    <div class="hidden md:flex gap-3 px-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <div class="w-1/2">Nhập BPT</div>
+                        <div class="w-1/2">Kiểm tra tọa độ M(x,y)</div>
                     </div>
 
-                    <!-- Container chứa danh sách BPT -->
+                    <!-- Container danh sách BPT -->
                     <div class="flex flex-col gap-3" id="inputsContainer">
-                        <!-- Hàng dữ liệu sẽ sinh động ở đây -->
+                        <!-- JS sẽ render HTML vào đây -->
                     </div>
 
                     <!-- Nút Thêm BPT -->
-                    <div>
-                        <button id="addEqBtn" class="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg border border-blue-200 transition-colors text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    <div class="pt-2">
+                        <button id="addEqBtn" class="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg border border-blue-200 transition-all text-sm shadow-sm hover:shadow active:scale-95">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
                             Thêm bất phương trình
                         </button>
                     </div>
@@ -86,73 +89,77 @@
             </div>
         </div>
 
+        <!-- 2. VÙNG THANH CÔNG CỤ (Nằm ngang phía trên bản vẽ) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-4 z-0">
+            <!-- Công cụ tương tác -->
+            <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                <button id="toolPointerBtn" class="tool-btn active flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold text-slate-600 transition-colors shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                    <span class="hidden sm:inline">Kéo Điểm M</span>
+                </button>
+                <button id="toolPanBtn" class="tool-btn flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold text-slate-600 transition-colors shadow-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
+                    <span class="hidden sm:inline">Di Chuyển</span>
+                </button>
+            </div>
 
-        <!-- 2. KHU VỰC ĐỒ THỊ -->
-        <div class="flex flex-col gap-2 shrink-0">
-            
-            <!-- THANH CÔNG CỤ -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 flex flex-wrap items-center justify-between gap-3">
-                
-                <div class="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
-                    <button id="toolPointerBtn" class="tool-btn active flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium text-slate-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
-                        Kéo Điểm M
+            <!-- Công cụ tùy chỉnh -->
+            <div class="flex flex-wrap items-center gap-4 sm:gap-6">
+                <!-- Zoom -->
+                <div class="flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                    <button id="zoomOutBtn" class="p-1 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Thu nhỏ">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path></svg>
                     </button>
-                    <button id="toolPanBtn" class="tool-btn flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium text-slate-600 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
-                        Di Chuyển
+                    <span class="text-xs font-bold text-slate-500 px-2 uppercase">Zoom</span>
+                    <button id="zoomInBtn" class="p-1 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Phóng to">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
                     </button>
                 </div>
 
-                <div class="flex items-center gap-4 md:gap-6">
-                    <!-- Zoom Controls -->
-                    <div class="flex items-center gap-0.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
-                        <button id="zoomOutBtn" class="p-1 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Thu nhỏ">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
-                        </button>
-                        <span class="text-xs font-bold text-slate-500 px-1 uppercase">Zoom</span>
-                        <button id="zoomInBtn" class="p-1 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Phóng to">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </button>
-                    </div>
-
-                    <!-- Slider Cỡ Chữ -->
-                    <div class="flex items-center gap-2">
-                        <label for="fontSlider" class="text-xs font-bold text-slate-500 uppercase tracking-wide hidden sm:block">Cỡ chữ</label>
-                        <input type="range" id="fontSlider" min="10" max="36" value="16" class="w-20 md:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-blue-300">
-                        <span id="fontValue" class="text-xs font-mono font-medium text-slate-700 w-8">16px</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VÙNG BẢN VẼ (16:9 Cố định) -->
-            <div class="relative w-full aspect-video bg-white rounded-xl shadow-sm border border-slate-300 overflow-hidden">
-                <canvas id="mathCanvas" class="absolute inset-0 w-full h-full block"></canvas>
-            </div>
-
-            <!-- Chú thích -->
-            <div class="flex items-center justify-center gap-6 text-sm text-slate-500 bg-white p-2 rounded-lg border border-slate-200 shadow-sm mt-1">
+                <!-- Slider Cỡ Chữ -->
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 bg-white border border-slate-400 rounded-sm"></div>
+                    <label class="text-xs font-bold text-slate-500 uppercase hidden md:block">Cỡ chữ</label>
+                    <svg class="w-4 h-4 text-slate-400 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
+                    <input type="range" id="fontSlider" min="10" max="36" value="16" class="w-16 sm:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+
+                <!-- Slider Nét Gạch -->
+                <div class="flex items-center gap-2 pl-4 border-l border-slate-200">
+                    <label class="text-xs font-bold text-slate-500 uppercase hidden lg:block">Nét gạch</label>
+                    <svg class="w-4 h-4 text-slate-400 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    <input type="range" id="hatchSlider" min="0.1" max="4.0" step="0.1" value="0.4" class="w-16 sm:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. VÙNG BẢN VẼ (Cố định 16:9) -->
+        <div class="relative w-full aspect-video bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden shrink-0 z-0">
+            <canvas id="mathCanvas" class="absolute inset-0 w-full h-full block bg-white"></canvas>
+            
+            <!-- Chú thích nổi nhẹ dưới cùng góc phải -->
+            <div class="absolute bottom-3 right-3 flex flex-col gap-1.5 text-xs font-medium text-slate-600 bg-white/90 backdrop-blur p-2 rounded-lg border border-slate-200 shadow-sm pointer-events-none">
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-white border border-slate-400 rounded-sm"></div>
                     <span>Miền nghiệm</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="w-4 h-4 border border-slate-400 rounded-sm" style="background: repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 1px, transparent 1px, transparent 4px);"></div>
-                    <span>Bị gạch bỏ (sai)</span>
+                    <div class="w-3 h-3 border border-slate-400 rounded-sm" style="background: repeating-linear-gradient(45deg, #94a3b8, #94a3b8 1px, transparent 1px, transparent 4px);"></div>
+                    <span>Bị gạch bỏ</span>
                 </div>
             </div>
         </div>
 
-        <!-- 3. FOOTER -->
-        <div class="text-center text-sm font-medium text-slate-500 pb-6 shrink-0 pt-2">
-            Bản quyền: Dlk Edu Tech - Phát triển bởi tranhongdan@tranphudlk.edu.vn
-        </div>
+        <!-- 4. FOOTER -->
+        <footer class="text-center py-4 mt-2 border-t border-slate-200">
+            <p class="text-sm font-semibold text-slate-500">
+                Bản quyền: Dlk Edu Tech - Phát triển bởi tranhongdan@tranphudlk.edu.vn
+            </p>
+        </footer>
 
     </div>
 
-
     <script>
-        // --- State Variables ---
+        // --- CÁC BIẾN TRẠNG THÁI (STATE) ---
         const canvas = document.getElementById('mathCanvas');
         const ctx = canvas.getContext('2d');
         const inputsContainer = document.getElementById('inputsContainer');
@@ -161,22 +168,23 @@
         let scale = 50; 
         let offsetX = 0, offsetY = 0; 
         let canvasFontSize = 16;
+        let hatchWeight = 0.4; // Độ đậm nét gạch sọc mặc định
         
-        let currentMode = 'POINTER'; 
+        let currentMode = 'POINTER'; // 'POINTER' | 'PAN'
         let isDragging = false;
         let lastMouse = {x: 0, y: 0};
         
-        // Quản lý dữ liệu đầu vào động (bắt đầu với 1 BPT)
-        let equationsData = ["x + y <= 4"];
+        // Quản lý Dữ liệu BPT
+        let equationsData = ["x + y <= 4"]; // Mặc định có 1 BPT
         let parsedEquations = [];
         let intersections = [];
         let pointM = { x: 2, y: 1 };
         
-        // Bảng màu quay vòng
-        const lineColors = ['#475569', '#7c3aed', '#0284c7', '#ea580c', '#e11d48', '#16a34a', '#d946ef'];
+        // Cấu hình màu sắc
+        const lineColors = ['#334155', '#6d28d9', '#0369a1', '#c2410c', '#be123c', '#15803d', '#a21caf'];
         let hatchPatterns = [];
 
-        // --- Giao diện Động (Dynamic Inputs) ---
+        // --- GIAO DIỆN ĐỘNG (Render Inputs & Validation) ---
         function renderInputRows() {
             inputsContainer.innerHTML = '';
             
@@ -184,39 +192,37 @@
                 const row = document.createElement('div');
                 row.className = "flex flex-col md:flex-row gap-2 md:gap-3 w-full group";
                 
-                // Nút Xóa (chỉ hiện nếu có nhiều hơn 1 BPT)
+                // Nút Xóa (chỉ hiển thị nếu > 1 dòng)
                 const deleteBtnHtml = equationsData.length > 1 
-                    ? `<button onclick="removeEquation(${index})" class="text-slate-300 hover:text-red-500 px-2 transition-colors focus:outline-none" title="Xóa">
+                    ? `<button onclick="removeEquation(${index})" class="text-slate-300 hover:text-rose-500 px-3 transition-colors focus:outline-none" title="Xóa BPT">
                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                        </button>`
-                    : `<div class="w-9"></div>`; // Cân bằng layout nếu không có nút xóa
+                    : `<div class="w-11"></div>`; // Cân bằng không gian
 
                 row.innerHTML = `
-                    <div class="w-full md:w-1/2 flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-200 shadow-sm transition-shadow">
-                        <div class="bg-slate-100 text-slate-500 font-bold px-3 border-r border-slate-200 text-sm h-full flex items-center justify-center min-w-[40px]">
+                    <div class="w-full md:w-1/2 flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-200 shadow-sm transition-all h-[46px]">
+                        <div class="bg-slate-100 text-slate-500 font-bold px-3 border-r border-slate-200 text-sm h-full flex items-center justify-center min-w-[44px]">
                             ${index + 1}
                         </div>
-                        <input type="text" id="eqInput_${index}" value="${eqStr}" oninput="handleInputChage(${index})" class="w-full px-3 py-2.5 text-slate-800 font-bold placeholder-slate-300 bg-transparent text-sm md:text-base" placeholder="Nhập BPT...">
+                        <input type="text" id="eqInput_${index}" value="${eqStr}" oninput="handleInputChage(${index})" class="w-full px-3 py-2 text-slate-800 font-bold placeholder-slate-300 bg-transparent text-sm md:text-base outline-none" placeholder="VD: 2x - y >= 0">
                         ${deleteBtnHtml}
                     </div>
                     
                     <div class="w-full md:w-1/2">
-                        <div id="eqValid_${index}" class="w-full h-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-400 overflow-hidden min-h-[46px] transition-colors shadow-sm">
-                            <span class="truncate text-sm">Trống</span>
+                        <div id="eqValid_${index}" class="w-full h-[46px] flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-400 overflow-hidden transition-colors shadow-sm">
+                            <span class="truncate text-sm font-medium">Chưa nhập liệu</span>
                         </div>
                     </div>
                 `;
                 inputsContainer.appendChild(row);
             });
             
-            // Re-evalute hệ thống sau khi render xong
             updateSystem();
         }
 
-        function handleInputChage(index) {
-            const val = document.getElementById(`eqInput_${index}`).value;
-            equationsData[index] = val;
-            updateSystem(); // Cập nhật tính toán và vẽ lại ngay khi gõ
+        window.handleInputChage = function(index) {
+            equationsData[index] = document.getElementById(`eqInput_${index}`).value;
+            updateSystem();
         }
 
         window.removeEquation = function(index) {
@@ -225,10 +231,8 @@
         }
 
         document.getElementById('addEqBtn').addEventListener('click', () => {
-            equationsData.push(""); // Thêm một hàng trống
+            equationsData.push(""); 
             renderInputRows();
-            
-            // Focus vào ô input mới nhất
             setTimeout(() => {
                 const newIdx = equationsData.length - 1;
                 const input = document.getElementById(`eqInput_${newIdx}`);
@@ -236,69 +240,73 @@
             }, 50);
         });
 
-
-        // --- Thu gọn / Mở rộng ---
+        // --- THU GỌN / MỞ RỘNG PANEL ---
         const toggleBtn = document.getElementById('toggleBtn');
         const toggleText = document.getElementById('toggleText');
         const toggleIcon = document.getElementById('toggleIcon');
-        const panel = document.getElementById('dataPanelWrapper');
+        const panelWrapper = document.getElementById('dataPanelWrapper');
         let isCollapsed = false;
         
         toggleBtn.addEventListener('click', () => {
             isCollapsed = !isCollapsed;
             if (isCollapsed) {
-                panel.classList.add('collapsed');
+                panelWrapper.classList.add('collapsed');
                 toggleText.textContent = "Mở rộng";
                 toggleIcon.style.transform = 'rotate(-180deg)';
             } else {
-                panel.classList.remove('collapsed');
+                panelWrapper.classList.remove('collapsed');
                 toggleText.textContent = "Thu gọn";
                 toggleIcon.style.transform = 'rotate(0deg)';
             }
         });
 
-        // --- Toán học & Canvas Utilities ---
+        // --- CÁC HÀM TOÁN HỌC & CANVAS TIỆN ÍCH ---
         function mathToPxX(x) { return (W / 2 + offsetX) + x * scale; }
         function mathToPxY(y) { return (H / 2 + offsetY) - y * scale; } 
         function pxToMathX(px) { return (px - (W / 2 + offsetX)) / scale; }
         function pxToMathY(py) { return ((H / 2 + offsetY) - py) / scale; }
 
+        // Parser an toàn
         function parseEqStr(str, idx) {
-            str = str.replace(/\s+/g, ''); 
-            if (!str) return null;
-            
-            const match = str.match(/(.*?)(<=|>=|<|>)(.*)/);
-            if (!match) return null;
-            let op = match[2];
-            
-            function parseSide(s) {
-                let a = 0, b = 0, c = 0;
-                if (!s) return {a, b, c};
-                let terms = s.replace(/-/g, '+-').split('+');
-                for (let t of terms) {
-                    if (!t) continue;
-                    if (t.includes('x')) {
-                        let val = t.replace('x', '');
-                        a += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
-                    } else if (t.includes('y')) {
-                        let val = t.replace('y', '');
-                        b += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
-                    } else {
-                        c += (parseFloat(t) || 0);
+            try {
+                str = str.replace(/\s+/g, ''); 
+                if (!str) return null;
+                
+                const match = str.match(/(.*?)(<=|>=|<|>)(.*)/);
+                if (!match) return null;
+                let op = match[2];
+                
+                function parseSide(s) {
+                    let a = 0, b = 0, c = 0;
+                    if (!s) return {a, b, c};
+                    let terms = s.replace(/-/g, '+-').split('+');
+                    for (let t of terms) {
+                        if (!t) continue;
+                        if (t.includes('x')) {
+                            let val = t.replace('x', '');
+                            a += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
+                        } else if (t.includes('y')) {
+                            let val = t.replace('y', '');
+                            b += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
+                        } else {
+                            c += (parseFloat(t) || 0);
+                        }
                     }
+                    return { a, b, c };
                 }
-                return { a, b, c };
-            }
-            
-            let lhs = parseSide(match[1]);
-            let rhs = parseSide(match[3]);
-            
-            let A = lhs.a - rhs.a;
-            let B = lhs.b - rhs.b;
-            let C = lhs.c - rhs.c;
+                
+                let lhs = parseSide(match[1]);
+                let rhs = parseSide(match[3]);
+                
+                let A = lhs.a - rhs.a;
+                let B = lhs.b - rhs.b;
+                let C = lhs.c - rhs.c;
 
-            if (Math.abs(A) < 1e-9 && Math.abs(B) < 1e-9) return null;
-            return { A, B, C, op, idx };
+                if (Math.abs(A) < 1e-9 && Math.abs(B) < 1e-9) return null;
+                return { A, B, C, op, idx };
+            } catch (e) {
+                return null; // Bỏ qua nếu lỗi
+            }
         }
 
         function calculateSystem() {
@@ -308,7 +316,6 @@
                 if (eq) parsedEquations.push(eq);
             });
             
-            // Giao điểm bằng quy tắc Cramer
             intersections = [];
             for (let i = 0; i < parsedEquations.length; i++) {
                 for (let j = i + 1; j < parsedEquations.length; j++) {
@@ -319,28 +326,28 @@
                     
                     if (Math.abs(D) > 1e-9) { 
                         let ix = Dx / D, iy = Dy / D;
-                        let isDuplicate = intersections.some(pt => Math.hypot(pt.x - ix, pt.y - iy) < 1e-4);
-                        if (!isDuplicate) intersections.push({x: ix, y: iy});
+                        let isDup = intersections.some(pt => Math.hypot(pt.x - ix, pt.y - iy) < 1e-4);
+                        if (!isDup) intersections.push({x: ix, y: iy});
                     }
                 }
             }
         }
 
-
+        // Tạo Pattern gạch sọc Offscreen (Hỗ trợ thay đổi độ đậm nhạt)
         function initHatching() {
             hatchPatterns = [];
             const dpr = window.devicePixelRatio || 1;
             
             lineColors.forEach(color => {
                 const pc = document.createElement('canvas');
-                const step = 5; // Khoảng cách gạch 5px
+                const step = 6; // Khoảng cách giữa các nét gạch cố định
                 pc.width = step * dpr; 
                 pc.height = step * dpr; 
                 const pCtx = pc.getContext('2d');
                 
                 pCtx.scale(dpr, dpr);
                 pCtx.strokeStyle = color;
-                pCtx.lineWidth = 0.4; // Nét siêu mảnh 0.4px
+                pCtx.lineWidth = hatchWeight; // Sử dụng biến state độ đậm
                 
                 pCtx.beginPath();
                 pCtx.moveTo(0, 0); 
@@ -353,8 +360,9 @@
             });
         }
 
+        // --- VẼ ĐỒ THỊ ---
         function drawCanvas() {
-            if(hatchPatterns.length === 0) initHatching();
+            if (hatchPatterns.length === 0) initHatching();
             
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, H);
@@ -364,7 +372,7 @@
             let startY = Math.floor(pxToMathY(H));
             let endY = Math.ceil(pxToMathY(0));  
             
-            // Lưới mờ
+            // Vẽ Lưới mờ
             ctx.strokeStyle = '#e2e8f0'; 
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -378,8 +386,8 @@
             }
             ctx.stroke();
 
-            // Trục tọa độ
-            ctx.strokeStyle = '#334155'; 
+            // Vẽ Trục Tọa Độ
+            ctx.strokeStyle = '#1e293b'; 
             ctx.lineWidth = 2.5;
             ctx.beginPath();
             let ox = mathToPxX(0), oy = mathToPxY(0);
@@ -387,9 +395,9 @@
             if (oy > 0 && oy < H) { ctx.moveTo(0, oy); ctx.lineTo(W, oy); }
             ctx.stroke();
 
-            // Số và chữ trên trục
-            ctx.fillStyle = '#334155';
-            ctx.font = `500 ${canvasFontSize}px Inter`; 
+            // Nhãn số trên trục
+            ctx.fillStyle = '#1e293b';
+            ctx.font = `600 ${canvasFontSize}px Inter`; 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
@@ -405,24 +413,25 @@
                 if(i === 0) continue;
                 let py = mathToPxY(i);
                 if (py > 0 && py < H && ox > 0 && ox < W) {
-                    ctx.fillText(i, ox - canvasFontSize - 4, py);
+                    ctx.fillText(i, ox - canvasFontSize - 6, py);
                     ctx.beginPath(); ctx.moveTo(ox-4, py); ctx.lineTo(ox+4, py); ctx.stroke();
                 }
             }
 
+            // Gốc O và Tên trục
             if (ox > -50 && ox < W+50 && oy > -50 && oy < H+50) {
                 ctx.fillStyle = '#0f172a';
                 ctx.font = `800 ${canvasFontSize + 2}px Inter`;
                 ctx.fillText('O', ox - (canvasFontSize + 2), oy + (canvasFontSize + 2));
                 
-                ctx.beginPath(); ctx.moveTo(ox-5, 12); ctx.lineTo(ox, 0); ctx.lineTo(ox+5, 12); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(ox-6, 12); ctx.lineTo(ox, 0); ctx.lineTo(ox+6, 12); ctx.fill();
                 ctx.fillText('y', ox + (canvasFontSize + 4), canvasFontSize + 4);
                 
-                ctx.beginPath(); ctx.moveTo(W-12, oy-5); ctx.lineTo(W, oy); ctx.lineTo(W-12, oy+5); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(W-12, oy-6); ctx.lineTo(W, oy); ctx.lineTo(W-12, oy+6); ctx.fill();
                 ctx.fillText('x', W - (canvasFontSize + 4), oy + (canvasFontSize + 6));
             }
 
-            // Vẽ các đường biên và miền gạch sọc
+            // Vẽ Bất Phương Trình
             parsedEquations.forEach(eq => {
                 let { A, B, C, op, idx } = eq;
                 const FAR = 10000;
@@ -435,6 +444,7 @@
                     p2 = { x: -C / A, y: FAR };
                 }
 
+                // Hướng pháp tuyến trỏ về phía SAI (để gạch bỏ)
                 let nx = A, ny = B;
                 if (op === '<=' || op === '<') { nx = A; ny = B; } 
                 else { nx = -A; ny = -B; } 
@@ -445,6 +455,7 @@
                 let p3 = { x: p2.x + nx * FAR, y: p2.y + ny * FAR };
                 let p4 = { x: p1.x + nx * FAR, y: p1.y + ny * FAR };
 
+                // Tô gạch sọc
                 ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(mathToPxX(p1.x), mathToPxY(p1.y));
@@ -462,6 +473,7 @@
                 ctx.fillRect(-diag, -diag, diag*2, diag*2); 
                 ctx.restore(); 
 
+                // Vẽ Nét ranh giới
                 ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(mathToPxX(p1.x), mathToPxY(p1.y));
@@ -474,30 +486,30 @@
                 ctx.restore();
             });
 
-            // Vẽ giao điểm
+            // Vẽ Giao Điểm
             ctx.textBaseline = 'bottom';
             intersections.forEach(pt => {
                 let px = mathToPxX(pt.x), py = mathToPxY(pt.y);
                 if (px < -30 || px > W + 30 || py < -30 || py > H + 30) return;
 
-                ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
                 ctx.fillStyle = '#0f172a'; ctx.fill();
                 ctx.lineWidth = 2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
 
                 let txt = `(${parseFloat(pt.x.toFixed(2))}, ${parseFloat(pt.y.toFixed(2))})`;
                 ctx.font = `600 ${canvasFontSize}px Inter`;
                 ctx.textAlign = pt.x >= 0 ? 'right' : 'left';
-                let off = pt.x >= 0 ? -10 : 10;
+                let off = pt.x >= 0 ? -8 : 8;
                 
                 ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-                ctx.strokeText(txt, px + off, py - 8);
+                ctx.strokeText(txt, px + off, py - 6);
                 ctx.fillStyle = '#0f172a';
-                ctx.fillText(txt, px + off, py - 8);
+                ctx.fillText(txt, px + off, py - 6);
             });
 
-            // Vẽ điểm M
+            // Vẽ Điểm M
             let mx = mathToPxX(pointM.x), my = mathToPxY(pointM.y);
-            ctx.beginPath(); ctx.arc(mx, my, 10, 0, Math.PI * 2);
+            ctx.beginPath(); ctx.arc(mx, my, 8, 0, Math.PI * 2);
             ctx.fillStyle = '#ef4444'; 
             ctx.fill();
             ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke();
@@ -505,38 +517,39 @@
             ctx.font = `800 ${canvasFontSize + 2}px Inter`;
             ctx.textAlign = 'left';
             let mTxt = `M(${parseFloat(pointM.x.toFixed(1))}, ${parseFloat(pointM.y.toFixed(1))})`;
-            ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-            ctx.strokeText(mTxt, mx + 14, my - 10);
+            ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.strokeText(mTxt, mx + 12, my - 8);
             ctx.fillStyle = '#b91c1c';
-            ctx.fillText(mTxt, mx + 14, my - 10);
+            ctx.fillText(mTxt, mx + 12, my - 8);
         }
 
-        // Cập nhật kết quả thay số
+        // --- VALIDATION TRỰC TIẾP ---
         function updateValidationBoxes() {
             equationsData.forEach((str, i) => {
                 let box = document.getElementById(`eqValid_${i}`);
-                if (!box) return; // Bảo vệ nếu DOM chưa kịp render
+                if (!box) return;
                 
                 str = str.trim();
                 if (!str) {
-                    box.innerHTML = `<span class="truncate text-sm">Trống</span>`;
-                    box.className = "w-full h-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-400 overflow-hidden";
+                    box.innerHTML = `<span class="truncate text-sm font-medium">Chưa nhập liệu</span>`;
+                    box.className = "w-full h-[46px] flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-400 overflow-hidden";
                     return;
                 }
 
                 let eq = parsedEquations.find(e => e.idx === i);
                 if (!eq) {
                     box.innerHTML = `<span class="text-rose-500 font-bold text-sm">Lỗi cú pháp</span>`;
-                    box.className = "w-full h-full flex items-center bg-rose-50 border border-rose-200 rounded-lg px-4 py-2.5 overflow-hidden";
+                    box.className = "w-full h-[46px] flex items-center bg-rose-50 border border-rose-200 rounded-lg px-4 py-2 overflow-hidden";
                     return; 
                 }
 
                 let val = eq.A * pointM.x + eq.B * pointM.y + eq.C;
                 let valid = false;
-                if (eq.op === '<=') valid = val <= 1e-6;
-                if (eq.op === '>=') valid = val >= -1e-6;
-                if (eq.op === '<') valid = val < -1e-6;
-                if (eq.op === '>') valid = val > 1e-6;
+                const eps = 1e-6; // Sai số
+                if (eq.op === '<=') valid = val <= eps;
+                if (eq.op === '>=') valid = val >= -eps;
+                if (eq.op === '<') valid = val < -eps;
+                if (eq.op === '>') valid = val > eps;
 
                 let escOp = eq.op.replace('<', '&lt;').replace('>', '&gt;');
                 
@@ -567,8 +580,8 @@
                 `;
                 
                 box.className = valid
-                    ? "w-full h-full flex items-center justify-between bg-emerald-50 border border-emerald-300 rounded-lg px-4 py-2.5 overflow-hidden shadow-sm transition-colors"
-                    : "w-full h-full flex items-center justify-between bg-rose-50 border border-rose-300 rounded-lg px-4 py-2.5 overflow-hidden shadow-sm transition-colors";
+                    ? "w-full h-[46px] flex items-center justify-between bg-emerald-50 border border-emerald-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors"
+                    : "w-full h-[46px] flex items-center justify-between bg-rose-50 border border-rose-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors";
             });
         }
 
@@ -578,7 +591,7 @@
             updateValidationBoxes();
         }
 
-        // --- Sự kiện Toolbar & Tương tác Canvas ---
+        // --- TOOLBAR & EVENT LISTENERS ---
         const btnPointer = document.getElementById('toolPointerBtn');
         const btnPan = document.getElementById('toolPanBtn');
         
@@ -596,14 +609,18 @@
         document.getElementById('zoomInBtn').addEventListener('click', () => { scale *= 1.2; drawCanvas(); });
         document.getElementById('zoomOutBtn').addEventListener('click', () => { scale /= 1.2; drawCanvas(); });
 
-        const fontSlider = document.getElementById('fontSlider');
-        const fontValue = document.getElementById('fontValue');
-        fontSlider.addEventListener('input', (e) => {
+        document.getElementById('fontSlider').addEventListener('input', (e) => {
             canvasFontSize = parseInt(e.target.value);
-            fontValue.textContent = `${canvasFontSize}px`;
             drawCanvas();
         });
 
+        document.getElementById('hatchSlider').addEventListener('input', (e) => {
+            hatchWeight = parseFloat(e.target.value);
+            initHatching(); // Reset pattern với độ đậm mới
+            drawCanvas();
+        });
+
+        // Xử lý Resize Canvas tự động theo 16:9 
         function handleResize() {
             const wrapper = canvas.parentElement;
             const rect = wrapper.getBoundingClientRect();
@@ -614,13 +631,14 @@
             canvas.width = W;
             canvas.height = H;
             
-            if(hatchPatterns.length > 0) initHatching(); // Vẽ lại pattern theo pixel ratio mới
+            if(hatchPatterns.length > 0) initHatching(); 
             drawCanvas();
         }
         
         const ro = new ResizeObserver(handleResize);
         ro.observe(canvas.parentElement);
 
+        // Kéo thả & Pan
         function getEventPos(e) {
             const rect = canvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
@@ -635,6 +653,7 @@
             
             if (currentMode === 'POINTER') {
                 const px = mathToPxX(pointM.x), py = mathToPxY(pointM.y);
+                // Hitbox của điểm M
                 if (Math.hypot(lastMouse.x - px, lastMouse.y - py) > 40) isDragging = false; 
             } else {
                 canvas.style.cursor = 'grabbing';
@@ -677,10 +696,10 @@
         window.addEventListener('touchmove', onPointerMove, {passive: true});
         window.addEventListener('touchend', onPointerUp);
 
-        // --- Khởi chạy ---
+        // --- KHỞI CHẠY LẦN ĐẦU ---
         window.onload = () => {
-            renderInputRows(); // Tạo DOM động lần đầu
-            handleResize(); // Lấy size và vẽ lần đầu
+            renderInputRows(); 
+            handleResize(); 
         };
     </script>
 </body>
