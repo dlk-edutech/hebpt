@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Bất Phương Trình Bậc Nhất</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            overflow-y: auto; 
+            overflow-x: hidden;
+        }
+
+        /* Hiệu ứng trượt cho vùng nhập liệu */
+        #dataPanelWrapper {
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+            max-height: 1200px; /* Đủ lớn để chứa nội dung */
+            opacity: 1;
+            overflow: hidden;
+        }
+        #dataPanelWrapper.collapsed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+        input:focus { outline: none; }
+        canvas { touch-action: none; cursor: crosshair; }
+        
+        /* Tool button active state */
+        .tool-btn.active {
+            background-color: #eff6ff; /* blue-50 */
+            color: #2563eb; /* blue-600 */
+            border-color: #bfdbfe; /* blue-200 */
+        }
+
+        /* Tùy chỉnh thanh cuộn nhỏ cho thẩm mỹ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Container chính -->
+    <div class="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col gap-6 flex-grow">
+
+        <!-- 1. VÙNG DỮ LIỆU (Có thể thu gọn) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 flex flex-col shrink-0">
+            <!-- Header & Nút Thu Gọn -->
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center z-10 rounded-t-xl">
+                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+                    Bảng Nhập Dữ Liệu
+                </h1>
+                <button id="toggleBtn" class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-600 text-sm font-semibold rounded-lg border border-slate-300 transition-colors shadow-sm">
+                    <span id="toggleText">Thu gọn</span>
+                    <svg id="toggleIcon" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                </button>
+            </div>
+
+            <!-- Content Panel -->
+            <div id="dataPanelWrapper">
+                <div class="p-4 md:p-6 flex flex-col gap-4">
+                    <!-- Hướng dẫn nhanh -->
+                    <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-800 flex gap-2">
+                        <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Nhập phương trình ở cột trái. Kéo thả điểm <strong>M(x,y)</strong> trên đồ thị để kiểm tra trực tiếp tọa độ ở cột phải.</span>
+                    </div>
+
+                    <div class="flex flex-col gap-3" id="inputsContainer">
+                        <!-- Hàng dữ liệu sẽ được tạo tự động bằng JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. KHU VỰC ĐỒ THỊ -->
+        <div class="flex flex-col gap-3 shrink-0">
+            
+            <!-- THANH CÔNG CỤ (Nằm NGAY TRÊN khung vẽ, tách biệt) -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 flex flex-wrap items-center justify-between gap-4">
+                
+                <!-- Chế độ tương tác -->
+                <div class="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                    <button id="toolPointerBtn" class="tool-btn active flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium text-slate-600 transition-colors" title="Chọn và di chuyển điểm M">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
+                        Kéo Điểm M
+                    </button>
+                    <button id="toolPanBtn" class="tool-btn flex items-center gap-2 px-3 py-1.5 rounded text-sm font-medium text-slate-600 transition-colors" title="Di chuyển toàn bộ khung hình">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"></path></svg>
+                        Kéo Bản Vẽ (Pan)
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <!-- Zoom Controls -->
+                    <div class="flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                        <button id="zoomOutBtn" class="p-1.5 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Thu nhỏ">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>
+                        </button>
+                        <span class="text-xs font-bold text-slate-500 px-2 uppercase">Zoom</span>
+                        <button id="zoomInBtn" class="p-1.5 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Phóng to">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </button>
+                    </div>
+
+                    <!-- Slider Cỡ Chữ -->
+                    <div class="flex items-center gap-3">
+                        <label for="fontSlider" class="text-xs font-bold text-slate-500 uppercase tracking-wide">Cỡ chữ</label>
+                        <input type="range" id="fontSlider" min="10" max="30" value="16" class="w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-blue-300">
+                        <span id="fontValue" class="text-xs font-mono font-medium text-slate-700 w-8">16px</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- VÙNG BẢN VẼ (16:9) -->
+            <!-- Tỷ lệ 16:9 cố định thông qua aspect-video. Sử dụng overflow-hidden để không bị tràn. -->
+            <div class="relative w-full aspect-video bg-white rounded-xl shadow-sm border border-slate-300 overflow-hidden">
+                <canvas id="mathCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+            </div>
+
+            <!-- Chú thích ký hiệu đồ thị -->
+            <div class="flex items-center justify-center gap-6 text-sm text-slate-500 bg-white p-2 rounded-lg border border-slate-200 shadow-sm mt-1">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-white border border-slate-400 rounded-sm"></div>
+                    <span>Miền nghiệm</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- SVG biểu diễn gạch sọc -->
+                    <div class="w-4 h-4 border border-slate-400 rounded-sm" style="background: repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 1px, transparent 1px, transparent 4px);"></div>
+                    <span>Bị gạch bỏ (sai)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. FOOTER BẢN QUYỀN -->
+        <div class="text-center text-sm font-medium text-slate-400 pb-8 shrink-0">
+            Bản quyền: Dlk Edu Tech - Phát triển bởi tranhongdan@tranphudlk.edu.vn
+        </div>
+
+    </div>
+
+    <script>
+        // --- State Variables ---
+        const canvas = document.getElementById('mathCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let W = 0, H = 0; 
+        let scale = 50; // Pixels cho 1 đơn vị toán học
+        let offsetX = 0, offsetY = 0; // Tịnh tiến đồ thị (Pan)
+        let canvasFontSize = 16;
+        
+        let currentMode = 'POINTER'; 
+        let isDragging = false;
+        let lastMouse = {x: 0, y: 0};
+        
+        let equations = [];
+        let intersections = [];
+        let pointM = { x: 2, y: 1 };
+        
+        // Bảng màu cho từng đường và mẫu gạch sọc
+        const lineColors = ['#475569', '#7c3aed', '#0284c7', '#ea580c', '#e11d48'];
+        let hatchPatterns = [];
+
+        // --- Khởi tạo Bảng Nhập Liệu ---
+        function initDOM() {
+            const container = document.getElementById('inputsContainer');
+            const defaultEqs = ["x + y <= 4", "-x + 2y < 2", "x >= 0", "y >= -1", ""];
+            
+            for (let i = 0; i < 5; i++) {
+                const row = document.createElement('div');
+                row.className = "flex flex-col md:flex-row gap-3 w-full";
+                row.innerHTML = `
+                    <!-- Cột trái: Nhập liệu -->
+                    <div class="w-full md:w-1/2 flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-200 transition-shadow">
+                        <span class="bg-slate-100 text-slate-500 font-bold px-3 py-2.5 border-r border-slate-200 text-sm h-full flex items-center justify-center min-w-[40px]">${i+1}</span>
+                        <input type="text" id="eqInput_${i}" value="${defaultEqs[i]}" class="w-full px-3 py-2.5 text-slate-800 font-bold placeholder-slate-300 bg-transparent text-sm md:text-base" placeholder="VD: 2x - 3y <= 6">
+                    </div>
+                    
+                    <!-- Cột phải: Validation -->
+                    <div class="w-full md:w-1/2">
+                        <div id="eqValid_${i}" class="w-full h-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-slate-400 overflow-hidden min-h-[46px] transition-colors">
+                            <span class="truncate text-sm">Trống</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+                
+                // Lắng nghe thay đổi để render lại ngay
+                const inputEl = document.getElementById(`eqInput_${i}`);
+                inputEl.addEventListener('input', updateSystem);
+            }
+
+            // Nút Thu gọn/Mở rộng
+            const toggleBtn = document.getElementById('toggleBtn');
+            const toggleText = document.getElementById('toggleText');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const panel = document.getElementById('dataPanelWrapper');
+            let isCollapsed = false;
+            
+            toggleBtn.addEventListener('click', () => {
+                isCollapsed = !isCollapsed;
+                if (isCollapsed) {
+                    panel.classList.add('collapsed');
+                    toggleText.textContent = "Mở rộng";
+                    toggleIcon.style.transform = 'rotate(-180deg)';
+                } else {
+                    panel.classList.remove('collapsed');
+                    toggleText.textContent = "Thu gọn";
+                    toggleIcon.style.transform = 'rotate(0deg)';
+                }
+                // Dù ẩn hay hiện, kích thước canvas (16:9) không hề bị ảnh hưởng do flex và layout
+            });
+
+            // Thanh công cụ - Nút chọn chế độ
+            const btnPointer = document.getElementById('toolPointerBtn');
+            const btnPan = document.getElementById('toolPanBtn');
+            
+            btnPointer.addEventListener('click', () => {
+                currentMode = 'POINTER';
+                btnPointer.classList.add('active');
+                btnPan.classList.remove('active');
+                updateCursor();
+            });
+            btnPan.addEventListener('click', () => {
+                currentMode = 'PAN';
+                btnPan.classList.add('active');
+                btnPointer.classList.remove('active');
+                updateCursor();
+            });
+
+            // Zoom
+            document.getElementById('zoomInBtn').addEventListener('click', () => { 
+                scale *= 1.2; 
+                redraw(); 
+            });
+            document.getElementById('zoomOutBtn').addEventListener('click', () => { 
+                scale /= 1.2; 
+                redraw(); 
+            });
+
+            // Slider Font Size
+            const fontSlider = document.getElementById('fontSlider');
+            const fontValue = document.getElementById('fontValue');
+            fontSlider.addEventListener('input', (e) => {
+                canvasFontSize = parseInt(e.target.value);
+                fontValue.textContent = `${canvasFontSize}px`;
+                redraw(); // Vẽ lại để cập nhật cỡ chữ
+            });
+        }
+
+        function updateCursor() {
+            if (currentMode === 'PAN') {
+                canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+            } else {
+                canvas.style.cursor = 'crosshair'; // Pointer mode mặc định
+            }
+        }
+
+        // --- Hàm Toán Học & Tọa độ ---
+        function mathToPxX(x) { return (W / 2 + offsetX) + x * scale; }
+        function mathToPxY(y) { return (H / 2 + offsetY) - y * scale; } 
+        function pxToMathX(px) { return (px - (W / 2 + offsetX)) / scale; }
+        function pxToMathY(py) { return ((H / 2 + offsetY) - py) / scale; }
+
+        function parseEqStr(str, idx) {
+            str = str.replace(/\s+/g, ''); 
+            if (!str) return null;
+            
+            // Tìm dấu
+            const match = str.match(/(.*?)(<=|>=|<|>)(.*)/);
+            if (!match) return null;
+            let op = match[2];
+            
+            // Tách các hệ số
+            function parseSide(s) {
+                let a = 0, b = 0, c = 0;
+                if (!s) return {a, b, c};
+                let terms = s.replace(/-/g, '+-').split('+');
+                for (let t of terms) {
+                    if (!t) continue;
+                    if (t.includes('x')) {
+                        let val = t.replace('x', '');
+                        a += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
+                    } else if (t.includes('y')) {
+                        let val = t.replace('y', '');
+                        b += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
+                    } else {
+                        c += (parseFloat(t) || 0);
+                    }
+                }
+                return { a, b, c };
+            }
+            
+            let lhs = parseSide(match[1]);
+            let rhs = parseSide(match[3]);
+            
+            // Đưa về dạng Ax + By + C (op) 0
+            let A = lhs.a - rhs.a;
+            let B = lhs.b - rhs.b;
+            let C = lhs.c - rhs.c;
+
+            if (Math.abs(A) < 1e-9 && Math.abs(B) < 1e-9) return null; // Phương trình vô nghĩa
+            return { A, B, C, op, idx };
+        }
+
+        function buildData() {
+            equations = [];
+            for (let i = 0; i < 5; i++) {
+                const val = document.getElementById(`eqInput_${i}`).value;
+                let eq = parseEqStr(val, i);
+                if (eq) equations.push(eq);
+            }
+            
+            // Tự động tìm tọa độ giao điểm bằng quy tắc Cramer
+            intersections = [];
+            for (let i = 0; i < equations.length; i++) {
+                for (let j = i + 1; j < equations.length; j++) {
+                    let eq1 = equations[i], eq2 = equations[j];
+                    
+                    // Hệ phương trình: A1x + B1y = -C1 và A2x + B2y = -C2
+                    let D = eq1.A * eq2.B - eq2.A * eq1.B;
+                    let Dx = (-eq1.C) * eq2.B - (-eq2.C) * eq1.B;
+                    let Dy = eq1.A * (-eq2.C) - eq2.A * (-eq1.C);
+                    
+                    // Nếu D khác 0 (hai đường cắt nhau)
+                    if (Math.abs(D) > 1e-9) { 
+                        let ix = Dx / D, iy = Dy / D;
+                        // Tránh thêm các điểm trùng lặp
+                        let isDuplicate = intersections.some(pt => Math.hypot(pt.x - ix, pt.y - iy) < 1e-4);
+                        if (!isDuplicate) {
+                            intersections.push({x: ix, y: iy});
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Hàm Render (Vẽ lên Canvas) ---
+        function initHatching() {
+            hatchPatterns = [];
+            const dpr = window.devicePixelRatio || 1;
+            
+            lineColors.forEach(color => {
+                const pc = document.createElement('canvas');
+                // Nét gạch mảnh (0.4px) và khoảng cách 5px (step 5px)
+                const step = 5;
+                pc.width = step * dpr; 
+                pc.height = step * dpr; 
+                const pCtx = pc.getContext('2d');
+                
+                pCtx.scale(dpr, dpr);
+                pCtx.strokeStyle = color;
+                pCtx.lineWidth = 0.4; // Nét vẽ siêu mảnh
+                
+                pCtx.beginPath();
+                // Vẽ 1 đường thẳng ngang (khi dùng pattern sẽ xoay)
+                pCtx.moveTo(0, 0); 
+                pCtx.lineTo(step, 0);
+                pCtx.stroke();
+                
+                const pat = ctx.createPattern(pc, 'repeat');
+                // Scale ngược lại dpr để render đúng kích thước logic trên các màn hình Retina
+                if (window.DOMMatrix) pat.setTransform(new DOMMatrix().scale(1/dpr, 1/dpr));
+                hatchPatterns.push(pat);
+            });
+        }
+
+        function drawGridAndAxes() {
+            // Nền trắng
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, W, H);
+            
+            // Tính toán vùng hiển thị
+            let startX = Math.floor(pxToMathX(0));
+            let endX = Math.ceil(pxToMathX(W));
+            let startY = Math.floor(pxToMathY(H));
+            let endY = Math.ceil(pxToMathY(0));  
+            
+            // Vẽ lưới mờ
+            ctx.strokeStyle = '#e2e8f0'; // slate-200
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i = startX; i <= endX; i++) { 
+                let px = mathToPxX(i); 
+                ctx.moveTo(px, 0); ctx.lineTo(px, H); 
+            }
+            for(let i = startY; i <= endY; i++) { 
+                let py = mathToPxY(i); 
+                ctx.moveTo(0, py); ctx.lineTo(W, py); 
+            }
+            ctx.stroke();
+
+            // Vẽ Trục chính (Ox, Oy)
+            ctx.strokeStyle = '#334155'; // slate-700
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            let ox = mathToPxX(0), oy = mathToPxY(0);
+            
+            // Trục y
+            if (ox > 0 && ox < W) { ctx.moveTo(ox, 0); ctx.lineTo(ox, H); }
+            // Trục x
+            if (oy > 0 && oy < H) { ctx.moveTo(0, oy); ctx.lineTo(W, oy); }
+            ctx.stroke();
+
+            // Thiết lập Font chữ
+            ctx.fillStyle = '#334155';
+            ctx.font = `500 ${canvasFontSize}px Inter`; 
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Đánh số trục X
+            for(let i = startX; i <= endX; i++) {
+                if(i === 0) continue;
+                let px = mathToPxX(i);
+                if (px > 0 && px < W && oy > 0 && oy < H) {
+                    ctx.fillText(i, px, oy + canvasFontSize + 4);
+                    // Dấu gạch nhỏ (tick)
+                    ctx.beginPath(); ctx.moveTo(px, oy-4); ctx.lineTo(px, oy+4); ctx.stroke();
+                }
+            }
+            // Đánh số trục Y
+            for(let i = startY; i <= endY; i++) {
+                if(i === 0) continue;
+                let py = mathToPxY(i);
+                if (py > 0 && py < H && ox > 0 && ox < W) {
+                    ctx.fillText(i, ox - canvasFontSize - 4, py);
+                    ctx.beginPath(); ctx.moveTo(ox-4, py); ctx.lineTo(ox+4, py); ctx.stroke();
+                }
+            }
+
+            // Ký hiệu gốc O, mũi tên x, y
+            if (ox > -50 && ox < W+50 && oy > -50 && oy < H+50) {
+                ctx.fillStyle = '#0f172a';
+                ctx.font = `800 ${canvasFontSize + 2}px Inter`;
+                ctx.fillText('O', ox - (canvasFontSize + 2), oy + (canvasFontSize + 2));
+                
+                // Mũi tên trục y
+                ctx.beginPath(); ctx.moveTo(ox-5, 12); ctx.lineTo(ox, 0); ctx.lineTo(ox+5, 12); ctx.fill();
+                ctx.fillText('y', ox + (canvasFontSize + 4), canvasFontSize + 4);
+                
+                // Mũi tên trục x
+                ctx.beginPath(); ctx.moveTo(W-12, oy-5); ctx.lineTo(W, oy); ctx.lineTo(W-12, oy+5); ctx.fill();
+                ctx.fillText('x', W - (canvasFontSize + 4), oy + (canvasFontSize + 6));
+            }
+        }
+
+        function drawInequality(eq) {
+            let { A, B, C, op, idx } = eq;
+            const FAR = 10000;
+            
+            // 2 điểm trên đường thẳng biên
+            let p1, p2;
+            if (Math.abs(B) > 1e-7) {
+                p1 = { x: -FAR, y: (-C - A * (-FAR)) / B };
+                p2 = { x: FAR, y: (-C - A * FAR) / B };
+            } else {
+                p1 = { x: -C / A, y: -FAR };
+                p2 = { x: -C / A, y: FAR };
+            }
+
+            // Vector pháp tuyến
+            let nx = A, ny = B;
+            // Xác định miền BỊ GẠCH BỎ (vùng vi phạm)
+            // Nếu BPT là <= 0, miền đúng là phía (-A, -B). Miền sai (cần gạch) là phía (A, B).
+            if (op === '<=' || op === '<') { 
+                // Vùng cần gạch sọc cùng hướng với pháp tuyến (A, B)
+                nx = A; ny = B; 
+            } else { 
+                // Vùng cần gạch sọc ngược hướng
+                nx = -A; ny = -B; 
+            } 
+            
+            let len = Math.hypot(nx, ny);
+            nx /= len; ny /= len;
+
+            // Mở rộng thành đa giác bao phủ miền vi phạm
+            let p3 = { x: p2.x + nx * FAR, y: p2.y + ny * FAR };
+            let p4 = { x: p1.x + nx * FAR, y: p1.y + ny * FAR };
+
+            // Cắt vùng (Clip) và fill gạch sọc
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(mathToPxX(p1.x), mathToPxY(p1.y));
+            ctx.lineTo(mathToPxX(p2.x), mathToPxY(p2.y));
+            ctx.lineTo(mathToPxX(p3.x), mathToPxY(p3.y));
+            ctx.lineTo(mathToPxX(p4.x), mathToPxY(p4.y));
+            ctx.closePath();
+            ctx.clip(); 
+
+            ctx.fillStyle = hatchPatterns[idx % hatchPatterns.length];
+            
+            // Xoay góc gạch sọc để các đường chéo đan vào nhau đẹp mắt
+            ctx.translate(W/2 + offsetX, H/2 + offsetY);
+            let angle = (idx * 30 + 45) * Math.PI / 180; 
+            ctx.rotate(angle);
+            let diag = Math.hypot(W, H) * 2;
+            ctx.fillRect(-diag, -diag, diag*2, diag*2); // Vẽ bao trùm
+            ctx.restore(); 
+
+            // Vẽ đường biên
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(mathToPxX(p1.x), mathToPxY(p1.y));
+            ctx.lineTo(mathToPxX(p2.x), mathToPxY(p2.y));
+            // Nét đứt nếu không chứa bờ (<, >)
+            if (op === '<' || op === '>') ctx.setLineDash([12, 10]); 
+            
+            ctx.strokeStyle = lineColors[idx % lineColors.length];
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawPointsAndIntersections() {
+            // Các điểm giao nhau
+            ctx.textBaseline = 'bottom';
+            intersections.forEach(pt => {
+                let px = mathToPxX(pt.x), py = mathToPxY(pt.y);
+                
+                // Chỉ vẽ nếu nằm trong/gần khung nhìn
+                if (px < -30 || px > W + 30 || py < -30 || py > H + 30) return;
+
+                // Dấu chấm đỏ sẫm cho giao điểm
+                ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#0f172a'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+
+                // Text hiển thị tọa độ giao điểm
+                let txt = `(${parseFloat(pt.x.toFixed(2))}, ${parseFloat(pt.y.toFixed(2))})`;
+                ctx.font = `600 ${canvasFontSize}px Inter`;
+                ctx.textAlign = pt.x >= 0 ? 'right' : 'left';
+                let off = pt.x >= 0 ? -10 : 10;
+                
+                ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+                ctx.strokeText(txt, px + off, py - 8);
+                ctx.fillStyle = '#0f172a';
+                ctx.fillText(txt, px + off, py - 8);
+            });
+
+            // Vẽ điểm M
+            let mx = mathToPxX(pointM.x), my = mathToPxY(pointM.y);
+            ctx.beginPath(); ctx.arc(mx, my, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444'; // Đỏ nổi bật
+            ctx.fill();
+            ctx.lineWidth = 3; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+
+            ctx.font = `800 ${canvasFontSize + 2}px Inter`;
+            ctx.textAlign = 'left';
+            let mTxt = `M(${parseFloat(pointM.x.toFixed(1))}, ${parseFloat(pointM.y.toFixed(1))})`;
+            ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.strokeText(mTxt, mx + 14, my - 10);
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillText(mTxt, mx + 14, my - 10);
+        }
+
+        function redraw() {
+            if(hatchPatterns.length === 0) initHatching();
+            ctx.clearRect(0, 0, W, H);
+            drawGridAndAxes();
+            equations.forEach(eq => drawInequality(eq));
+            drawPointsAndIntersections();
+        }
+
+        // --- Cập nhật Panel Kiểm Tra Bên Phải ---
+        function checkValidations() {
+            for (let i = 0; i < 5; i++) {
+                let box = document.getElementById(`eqValid_${i}`);
+                let input = document.getElementById(`eqInput_${i}`).value.trim();
+                
+                if (!input) {
+                    box.innerHTML = `<span class="truncate text-sm">Trống</span>`;
+                    box.className = "w-full h-full flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 text-slate-400 overflow-hidden";
+                    continue;
+                }
+
+                let eq = equations.find(e => e.idx === i);
+                if (!eq) {
+                    box.innerHTML = `<span class="text-rose-500 font-bold text-sm">Lỗi cú pháp</span>`;
+                    box.className = "w-full h-full flex items-center bg-rose-50 border border-rose-200 rounded-lg px-4 py-2 overflow-hidden";
+                    continue; 
+                }
+
+                // Tính giá trị Ax + By + C với tọa độ điểm M
+                let val = eq.A * pointM.x + eq.B * pointM.y + eq.C;
+                let valid = false;
+                if (eq.op === '<=') valid = val <= 1e-6;
+                if (eq.op === '>=') valid = val >= -1e-6;
+                if (eq.op === '<') valid = val < -1e-6;
+                if (eq.op === '>') valid = val > 1e-6;
+
+                let escOp = eq.op.replace('<', '&lt;').replace('>', '&gt;');
+                
+                // Chuỗi hiển thị bước thế số
+                let expr = "";
+                if (eq.A !== 0) expr += `${parseFloat(eq.A.toFixed(2))}(<b class="text-slate-800">${parseFloat(pointM.x.toFixed(1))}</b>) `;
+                if (eq.B !== 0) {
+                    let sign = eq.B > 0 ? '+' : '-';
+                    expr += expr ? ` ${sign} ` : (eq.B < 0 ? "-" : "");
+                    expr += `${Math.abs(parseFloat(eq.B.toFixed(2)))}(<b class="text-slate-800">${parseFloat(pointM.y.toFixed(1))}</b>) `;
+                }
+                if (eq.C !== 0) {
+                    let sign = eq.C > 0 ? '+' : '-';
+                    expr += expr ? ` ${sign} ` : (eq.C < 0 ? "-" : "");
+                    expr += `${Math.abs(parseFloat(eq.C.toFixed(2)))} `;
+                }
+                if (!expr) expr = "0 ";
+
+                let icon = valid 
+                    ? `<div class="text-emerald-600 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>`
+                    : `<div class="text-rose-600 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg></div>`;
+
+                box.innerHTML = `
+                    <div class="truncate text-slate-600 font-mono pr-2 text-xs sm:text-sm">
+                        ${expr} = <strong class="text-slate-900">${parseFloat(val.toFixed(2))}</strong> 
+                        <span class="text-blue-600 font-black px-1">${escOp}</span> 0
+                    </div>
+                    ${icon}
+                `;
+                
+                box.className = valid
+                    ? "w-full h-full flex items-center justify-between bg-emerald-50 border border-emerald-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm"
+                    : "w-full h-full flex items-center justify-between bg-rose-50 border border-rose-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm";
+            }
+        }
+
+        function updateSystem() {
+            buildData();
+            redraw();
+            checkValidations();
+        }
+
+        
+        // --- Xử lý Sự kiện Kích thước & Tương tác chuột ---
+        function handleResize() {
+            // Lấy kích thước wrapper (luôn giữ tỷ lệ 16:9 nhờ CSS)
+            const wrapper = canvas.parentElement;
+            const rect = wrapper.getBoundingClientRect();
+            
+            // Xử lý Device Pixel Ratio để đồ thị luôn sắc nét trên màn Retina
+            const dpr = window.devicePixelRatio || 1;
+            W = rect.width * dpr;
+            H = rect.height * dpr;
+            
+            canvas.width = W;
+            canvas.height = H;
+            
+            // Reset hatching pattern cache (vì DPR hoặc size có thể đổi)
+            if(hatchPatterns.length > 0) initHatching();
+            redraw();
+        }
+        
+        // Theo dõi kích thước container. ResizeObserver đảm bảo canvas 
+        // luôn vừa vặn hoàn hảo mà không cần co giãn móp méo
+        const ro = new ResizeObserver(handleResize);
+        ro.observe(canvas.parentElement);
+
+        function getEventPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            let cx = e.clientX, cy = e.clientY;
+            if (e.touches && e.touches.length > 0) {
+                cx = e.touches[0].clientX; cy = e.touches[0].clientY;
+            }
+            return { x: (cx - rect.left) * dpr, y: (cy - rect.top) * dpr };
+        }
+
+        function onPointerDown(e) {
+            isDragging = true;
+            lastMouse = getEventPos(e);
+            
+            if (currentMode === 'POINTER') {
+                const px = mathToPxX(pointM.x), py = mathToPxY(pointM.y);
+                // Bán kính click khoảng 40px cho dễ bắt
+                if (Math.hypot(lastMouse.x - px, lastMouse.y - py) > 40) {
+                    isDragging = false; 
+                }
+            } else {
+                updateCursor(); // Update to 'grabbing'
+            }
+        }
+
+        function onPointerMove(e) {
+            if (!isDragging) {
+                // Hiệu ứng hover khi trỏ vào điểm M
+                if (currentMode === 'POINTER') {
+                    const pos = getEventPos(e);
+                    const px = mathToPxX(pointM.x), py = mathToPxY(pointM.y);
+                    canvas.style.cursor = (Math.hypot(pos.x - px, pos.y - py) < 40) ? 'pointer' : 'crosshair';
+                }
+                return;
+            }
+            
+            const pos = getEventPos(e);
+            if (currentMode === 'PAN') {
+                // Di chuyển gốc tọa độ
+                offsetX += (pos.x - lastMouse.x);
+                offsetY += (pos.y - lastMouse.y);
+                redraw();
+            } else if (currentMode === 'POINTER') {
+                // Di chuyển điểm M
+                pointM.x = pxToMathX(pos.x);
+                pointM.y = pxToMathY(pos.y);
+                redraw();
+                // Check lại bảng bên phải trực tiếp khi kéo
+                checkValidations(); 
+            }
+            lastMouse = pos;
+        }
+
+        function onPointerUp() {
+            isDragging = false;
+            updateCursor();
+        }
+
+        canvas.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+        canvas.addEventListener('touchstart', onPointerDown, {passive: true});
+        window.addEventListener('touchmove', onPointerMove, {passive: true});
+        window.addEventListener('touchend', onPointerUp);
+
+        // --- Bắt đầu chạy ứng dụng ---
+        window.onload = () => {
+            initDOM();
+            handleResize(); // Sẽ trigger vẽ lần đầu
+            updateSystem();
+        };
+    </script>
+</body>
+</html>
