@@ -676,8 +676,47 @@
                 offsetY += (pos.y - lastMouse.y);
                 drawCanvas();
             } else if (currentMode === 'POINTER') {
-                pointM.x = pxToMathX(pos.x);
-                pointM.y = pxToMathY(pos.y);
+                // Tọa độ thực tế của chuột trên hệ trục tọa độ
+                let rawMathX = pxToMathX(pos.x);
+                let rawMathY = pxToMathY(pos.y);
+                
+                let snapPoint = { x: rawMathX, y: rawMathY };
+                let bestDist = Infinity;
+                const SNAP_THRESHOLD_PX = 15; // Ngưỡng hút (pixel) - có thể tùy chỉnh
+
+                // 1. Kiểm tra hút vào các đường thẳng BPT
+                parsedEquations.forEach(eq => {
+                    let denom = Math.hypot(eq.A, eq.B);
+                    if (denom === 0) return;
+                    
+                    // Khoảng cách từ chuột đến đường Ax + By + C = 0
+                    let mathDist = Math.abs(eq.A * rawMathX + eq.B * rawMathY + eq.C) / denom;
+                    let pxDist = mathDist * scale; // Đổi sang pixel để cảm giác hút đồng đều ở mọi mức zoom
+                    
+                    if (pxDist < SNAP_THRESHOLD_PX && pxDist < bestDist) {
+                        bestDist = pxDist;
+                        // Tìm hình chiếu vuông góc của chuột lên đường thẳng
+                        let factor = (eq.A * rawMathX + eq.B * rawMathY + eq.C) / (denom * denom);
+                        snapPoint.x = rawMathX - eq.A * factor;
+                        snapPoint.y = rawMathY - eq.B * factor;
+                    }
+                });
+
+                // 2. Tùy chọn nâng cao: Hút ưu tiên vào Giao điểm của 2 đường thẳng nếu ở rất gần
+                intersections.forEach(pt => {
+                    let mathDist = Math.hypot(pt.x - rawMathX, pt.y - rawMathY);
+                    let pxDist = mathDist * scale;
+                    if (pxDist < SNAP_THRESHOLD_PX && pxDist < bestDist) {
+                        bestDist = pxDist;
+                        snapPoint.x = pt.x;
+                        snapPoint.y = pt.y;
+                    }
+                });
+
+                // Gán tọa độ đã qua xử lý (hút hoặc không hút) cho M
+                pointM.x = snapPoint.x;
+                pointM.y = snapPoint.y;
+                
                 drawCanvas();
                 updateValidationBoxes(); 
             }
