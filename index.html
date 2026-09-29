@@ -14,7 +14,6 @@
             overflow-x: hidden;
         }
 
-        /* Hiệu ứng trượt cho Panel */
         #dataPanelWrapper {
             transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, margin 0.3s ease;
             max-height: 2500px;
@@ -29,7 +28,7 @@
 
         input:focus { outline: none; }
         canvas { 
-            touch-action: none; /* Tránh cuộn trang khi vuốt trên canvas */
+            touch-action: none; 
             cursor: crosshair; 
         }
         
@@ -49,9 +48,8 @@
 
     <div class="max-w-6xl mx-auto w-full p-4 md:p-6 flex flex-col gap-4 flex-grow">
 
-        <!-- 1. VÙNG DỮ LIỆU ĐỘNG (Phía trên) -->
+        <!-- 1. VÙNG DỮ LIỆU ĐỘNG -->
         <div class="bg-white rounded-xl shadow-md border border-slate-200 flex flex-col shrink-0 transition-all z-10 relative">
-            <!-- Header Panel -->
             <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center rounded-t-xl">
                 <h1 class="text-xl md:text-2xl font-extrabold text-blue-700 flex items-center gap-2 tracking-tight">
                     <span class="bg-blue-600 text-white w-8 h-8 rounded-lg flex items-center justify-center text-lg transform -rotate-3">&Sigma;</span>
@@ -64,21 +62,13 @@
                 </button>
             </div>
 
-            <!-- Wrapper ẩn/hiện -->
             <div id="dataPanelWrapper">
                 <div class="p-4 md:p-5 flex flex-col gap-4">
-                    <!-- Grid Titles (Chỉ hiện trên desktop) -->
                     <div class="hidden md:flex gap-3 px-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <div class="w-1/2">Nhập BPT</div>
                         <div class="w-1/2">Kiểm tra tọa độ M(x,y)</div>
                     </div>
-
-                    <!-- Container danh sách BPT -->
-                    <div class="flex flex-col gap-3" id="inputsContainer">
-                        <!-- JS sẽ render HTML vào đây -->
-                    </div>
-
-                    <!-- Nút Thêm BPT -->
+                    <div class="flex flex-col gap-3" id="inputsContainer"></div>
                     <div class="pt-2">
                         <button id="addEqBtn" class="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg border border-blue-200 transition-all text-sm shadow-sm hover:shadow active:scale-95">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
@@ -89,9 +79,8 @@
             </div>
         </div>
 
-        <!-- 2. VÙNG THANH CÔNG CỤ (Nằm ngang phía trên bản vẽ) -->
+        <!-- 2. VÙNG THANH CÔNG CỤ -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 flex flex-wrap items-center justify-between gap-4 z-0">
-            <!-- Công cụ tương tác -->
             <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
                 <button id="toolPointerBtn" class="tool-btn active flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-semibold text-slate-600 transition-colors shadow-sm">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path></svg>
@@ -103,9 +92,7 @@
                 </button>
             </div>
 
-            <!-- Công cụ tùy chỉnh -->
             <div class="flex flex-wrap items-center gap-4 sm:gap-6">
-                <!-- Zoom -->
                 <div class="flex items-center gap-0.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
                     <button id="zoomOutBtn" class="p-1 rounded hover:bg-slate-200 text-slate-700 transition-colors" title="Thu nhỏ">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"></path></svg>
@@ -115,15 +102,11 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
                     </button>
                 </div>
-
-                <!-- Slider Cỡ Chữ -->
                 <div class="flex items-center gap-2">
                     <label class="text-xs font-bold text-slate-500 uppercase hidden md:block">Cỡ chữ</label>
                     <svg class="w-4 h-4 text-slate-400 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
                     <input type="range" id="fontSlider" min="10" max="36" value="16" class="w-16 sm:w-24 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer outline-none focus:ring-2 focus:ring-blue-400">
                 </div>
-
-                <!-- Slider Nét Gạch -->
                 <div class="flex items-center gap-2 pl-4 border-l border-slate-200">
                     <label class="text-xs font-bold text-slate-500 uppercase hidden lg:block">Nét gạch</label>
                     <svg class="w-4 h-4 text-slate-400 lg:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
@@ -132,11 +115,10 @@
             </div>
         </div>
 
-        <!-- 3. VÙNG BẢN VẼ (Cố định 16:9) -->
+        <!-- 3. VÙNG BẢN VẼ -->
         <div class="relative w-full aspect-video bg-white rounded-xl shadow-md border border-slate-300 overflow-hidden shrink-0 z-0">
             <canvas id="mathCanvas" class="absolute inset-0 w-full h-full block bg-white"></canvas>
             
-            <!-- Chú thích nổi nhẹ dưới cùng góc phải -->
             <div class="absolute bottom-3 right-3 flex flex-col gap-1.5 text-xs font-medium text-slate-600 bg-white/90 backdrop-blur p-2 rounded-lg border border-slate-200 shadow-sm pointer-events-none">
                 <div class="flex items-center gap-2">
                     <div class="w-3 h-3 bg-white border border-slate-400 rounded-sm"></div>
@@ -159,7 +141,6 @@
     </div>
 
     <script>
-        // --- CÁC BIẾN TRẠNG THÁI (STATE) ---
         const canvas = document.getElementById('mathCanvas');
         const ctx = canvas.getContext('2d');
         const inputsContainer = document.getElementById('inputsContainer');
@@ -168,23 +149,56 @@
         let scale = 50; 
         let offsetX = 0, offsetY = 0; 
         let canvasFontSize = 16;
-        let hatchWeight = 0.4; // Độ đậm nét gạch sọc mặc định
+        let hatchWeight = 0.4; 
         
-        let currentMode = 'POINTER'; // 'POINTER' | 'PAN'
+        let currentMode = 'POINTER'; 
         let isDragging = false;
         let lastMouse = {x: 0, y: 0};
         
-        // Quản lý Dữ liệu BPT
-        let equationsData = ["x + y <= 4"]; // Mặc định có 1 BPT
+        let equationsData = ["x + y <= 4"]; 
         let parsedEquations = [];
         let intersections = [];
         let pointM = { x: 2, y: 1 };
         
-        // Cấu hình màu sắc
         const lineColors = ['#334155', '#6d28d9', '#0369a1', '#c2410c', '#be123c', '#15803d', '#a21caf'];
         let hatchPatterns = [];
 
-        // --- GIAO DIỆN ĐỘNG (Render Inputs & Validation) ---
+        // HÀM CHUYỂN ĐỔI SỐ THẬP PHÂN SANG PHÂN SỐ
+        function toFraction(val) {
+            if (val === undefined || isNaN(val)) return "0";
+            if (val === 0 || Math.abs(val) < 1e-9) return "0";
+            
+            const tol = 1e-6; // Ngưỡng dung sai
+            if (Math.abs(val - Math.round(val)) < tol) return Math.round(val).toString();
+            
+            let sign = val < 0 ? "-" : "";
+            val = Math.abs(val);
+            let h1 = 1, h2 = 0, k1 = 0, k2 = 1;
+            let b = val;
+            
+            for (let i = 0; i < 20; i++) {
+                let a = Math.floor(b);
+                let h = a * h1 + h2;
+                let k = a * k1 + k2;
+                
+                if (Math.abs(val - h / k) < tol) {
+                    if (k === 1) return sign + h;
+                    return sign + h + "/" + k;
+                }
+                
+                h2 = h1; h1 = h;
+                k2 = k1; k1 = k;
+                if (b - a < 1e-9) break; 
+                b = 1 / (b - a);
+            }
+            // Dự phòng nếu không ra phân số gọn
+            return sign + parseFloat(val.toFixed(3)).toString();
+        }
+
+        function toAbsFraction(val) {
+            return toFraction(Math.abs(val));
+        }
+
         function renderInputRows() {
             inputsContainer.innerHTML = '';
             
@@ -192,12 +206,11 @@
                 const row = document.createElement('div');
                 row.className = "flex flex-col md:flex-row gap-2 md:gap-3 w-full group";
                 
-                // Nút Xóa (chỉ hiển thị nếu > 1 dòng)
                 const deleteBtnHtml = equationsData.length > 1 
                     ? `<button onclick="removeEquation(${index})" class="text-slate-300 hover:text-rose-500 px-3 transition-colors focus:outline-none" title="Xóa BPT">
                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                        </button>`
-                    : `<div class="w-11"></div>`; // Cân bằng không gian
+                    : `<div class="w-11"></div>`; 
 
                 row.innerHTML = `
                     <div class="w-full md:w-1/2 flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-200 shadow-sm transition-all h-[46px]">
@@ -240,7 +253,6 @@
             }, 50);
         });
 
-        // --- THU GỌN / MỞ RỘNG PANEL ---
         const toggleBtn = document.getElementById('toggleBtn');
         const toggleText = document.getElementById('toggleText');
         const toggleIcon = document.getElementById('toggleIcon');
@@ -260,13 +272,11 @@
             }
         });
 
-        // --- CÁC HÀM TOÁN HỌC & CANVAS TIỆN ÍCH ---
         function mathToPxX(x) { return (W / 2 + offsetX) + x * scale; }
         function mathToPxY(y) { return (H / 2 + offsetY) - y * scale; } 
         function pxToMathX(px) { return (px - (W / 2 + offsetX)) / scale; }
         function pxToMathY(py) { return ((H / 2 + offsetY) - py) / scale; }
 
-        // Parser an toàn
         function parseEqStr(str, idx) {
             try {
                 str = str.replace(/\s+/g, ''); 
@@ -305,7 +315,7 @@
                 if (Math.abs(A) < 1e-9 && Math.abs(B) < 1e-9) return null;
                 return { A, B, C, op, idx };
             } catch (e) {
-                return null; // Bỏ qua nếu lỗi
+                return null; 
             }
         }
 
@@ -333,21 +343,20 @@
             }
         }
 
-        // Tạo Pattern gạch sọc Offscreen (Hỗ trợ thay đổi độ đậm nhạt)
         function initHatching() {
             hatchPatterns = [];
             const dpr = window.devicePixelRatio || 1;
             
             lineColors.forEach(color => {
                 const pc = document.createElement('canvas');
-                const step = 6; // Khoảng cách giữa các nét gạch cố định
+                const step = 6; 
                 pc.width = step * dpr; 
                 pc.height = step * dpr; 
                 const pCtx = pc.getContext('2d');
                 
                 pCtx.scale(dpr, dpr);
                 pCtx.strokeStyle = color;
-                pCtx.lineWidth = hatchWeight; // Sử dụng biến state độ đậm
+                pCtx.lineWidth = hatchWeight; 
                 
                 pCtx.beginPath();
                 pCtx.moveTo(0, 0); 
@@ -360,7 +369,6 @@
             });
         }
 
-        // --- VẼ ĐỒ THỊ ---
         function drawCanvas() {
             if (hatchPatterns.length === 0) initHatching();
             
@@ -372,7 +380,7 @@
             let startY = Math.floor(pxToMathY(H));
             let endY = Math.ceil(pxToMathY(0));  
             
-            // Vẽ Lưới mờ
+            // Vẽ Lưới
             ctx.strokeStyle = '#e2e8f0'; 
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -386,7 +394,7 @@
             }
             ctx.stroke();
 
-            // Vẽ Trục Tọa Độ
+            // Vẽ Trục
             ctx.strokeStyle = '#1e293b'; 
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -395,7 +403,6 @@
             if (oy > 0 && oy < H) { ctx.moveTo(0, oy); ctx.lineTo(W, oy); }
             ctx.stroke();
 
-            // Nhãn số trên trục
             ctx.fillStyle = '#1e293b';
             ctx.font = `600 ${canvasFontSize}px Inter`; 
             ctx.textAlign = 'center';
@@ -418,7 +425,6 @@
                 }
             }
 
-            // Gốc O và Tên trục
             if (ox > -50 && ox < W+50 && oy > -50 && oy < H+50) {
                 ctx.fillStyle = '#0f172a';
                 ctx.font = `800 ${canvasFontSize + 2}px Inter`;
@@ -444,7 +450,6 @@
                     p2 = { x: -C / A, y: FAR };
                 }
 
-                // Hướng pháp tuyến trỏ về phía SAI (để gạch bỏ)
                 let nx = A, ny = B;
                 if (op === '<=' || op === '<') { nx = A; ny = B; } 
                 else { nx = -A; ny = -B; } 
@@ -455,7 +460,6 @@
                 let p3 = { x: p2.x + nx * FAR, y: p2.y + ny * FAR };
                 let p4 = { x: p1.x + nx * FAR, y: p1.y + ny * FAR };
 
-                // Tô gạch sọc
                 ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(mathToPxX(p1.x), mathToPxY(p1.y));
@@ -473,7 +477,6 @@
                 ctx.fillRect(-diag, -diag, diag*2, diag*2); 
                 ctx.restore(); 
 
-                // Vẽ Nét ranh giới
                 ctx.save();
                 ctx.beginPath();
                 ctx.moveTo(mathToPxX(p1.x), mathToPxY(p1.y));
@@ -484,6 +487,60 @@
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 ctx.restore();
+
+                let xMin = pxToMathX(0), xMax = pxToMathX(W);
+                let yMin = pxToMathY(H), yMax = pxToMathY(0);
+                let pts = [];
+                const eps = 1e-5;
+                
+                if (Math.abs(B) > 1e-7) {
+                    let y1 = (-C - A * xMin) / B;
+                    if (y1 >= yMin - eps && y1 <= yMax + eps) pts.push({x: xMin, y: y1});
+                    let y2 = (-C - A * xMax) / B;
+                    if (y2 >= yMin - eps && y2 <= yMax + eps) pts.push({x: xMax, y: y2});
+                }
+                if (Math.abs(A) > 1e-7) {
+                    let x1 = (-C - B * yMin) / A;
+                    if (x1 >= xMin - eps && x1 <= xMax + eps) pts.push({x: x1, y: yMin});
+                    let x2 = (-C - B * yMax) / A;
+                    if (x2 >= xMin - eps && x2 <= xMax + eps) pts.push({x: x2, y: yMax});
+                }
+                
+                if (pts.length >= 2) {
+                    pts.sort((a, b) => {
+                        if (Math.abs(b.y - a.y) > eps) return b.y - a.y;
+                        return b.x - a.x;
+                    });
+                    
+                    let pTop = pts[0];
+                    let pBottom = pts[pts.length - 1];
+                    
+                    if (Math.hypot(pTop.x - pBottom.x, pTop.y - pBottom.y) > 0.1) {
+                        let lx = pTop.x * 0.85 + pBottom.x * 0.15;
+                        let ly = pTop.y * 0.85 + pBottom.y * 0.15;
+                        
+                        let px = mathToPxX(lx);
+                        let py = mathToPxY(ly);
+                        
+                        let normLen = Math.hypot(A, B);
+                        let normX = A / normLen;
+                        let normY = -B / normLen; 
+                        
+                        px += normX * 22;
+                        py += normY * 22;
+                        
+                        ctx.fillStyle = lineColors[idx % lineColors.length];
+                        ctx.font = `italic 800 ${canvasFontSize + 2}px Inter`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        
+                        let text = `d${idx + 1}`;
+                        ctx.lineWidth = 4;
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx.strokeText(text, px, py);
+                        ctx.fillText(text, px, py);
+                    }
+                }
             });
 
             // Vẽ Giao Điểm
@@ -496,7 +553,8 @@
                 ctx.fillStyle = '#0f172a'; ctx.fill();
                 ctx.lineWidth = 2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
 
-                let txt = `(${parseFloat(pt.x.toFixed(2))}, ${parseFloat(pt.y.toFixed(2))})`;
+                // Hiển thị tọa độ dưới dạng phân số
+                let txt = `(${toFraction(pt.x)}, ${toFraction(pt.y)})`;
                 ctx.font = `600 ${canvasFontSize}px Inter`;
                 ctx.textAlign = pt.x >= 0 ? 'right' : 'left';
                 let off = pt.x >= 0 ? -8 : 8;
@@ -516,14 +574,14 @@
 
             ctx.font = `800 ${canvasFontSize + 2}px Inter`;
             ctx.textAlign = 'left';
-            let mTxt = `M(${parseFloat(pointM.x.toFixed(1))}, ${parseFloat(pointM.y.toFixed(1))})`;
+            // Hiển thị tọa độ M dưới dạng phân số
+            let mTxt = `M(${toFraction(pointM.x)}, ${toFraction(pointM.y)})`;
             ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
             ctx.strokeText(mTxt, mx + 12, my - 8);
             ctx.fillStyle = '#b91c1c';
             ctx.fillText(mTxt, mx + 12, my - 8);
         }
 
-        // --- VALIDATION TRỰC TIẾP ---
         function updateValidationBoxes() {
             equationsData.forEach((str, i) => {
                 let box = document.getElementById(`eqValid_${i}`);
@@ -545,7 +603,7 @@
 
                 let val = eq.A * pointM.x + eq.B * pointM.y + eq.C;
                 let valid = false;
-                const eps = 1e-6; // Sai số
+                const eps = 1e-6; 
                 if (eq.op === '<=') valid = val <= eps;
                 if (eq.op === '>=') valid = val >= -eps;
                 if (eq.op === '<') valid = val < -eps;
@@ -553,17 +611,18 @@
 
                 let escOp = eq.op.replace('<', '&lt;').replace('>', '&gt;');
                 
+                // Trình bày biểu thức bằng phân số thay vì số thập phân
                 let expr = "";
-                if (eq.A !== 0) expr += `${parseFloat(eq.A.toFixed(2))}(<b class="text-slate-800">${parseFloat(pointM.x.toFixed(1))}</b>) `;
+                if (eq.A !== 0) expr += `${toFraction(eq.A)}(<b class="text-slate-800">${toFraction(pointM.x)}</b>) `;
                 if (eq.B !== 0) {
                     let sign = eq.B > 0 ? '+' : '-';
                     expr += expr ? ` ${sign} ` : (eq.B < 0 ? "-" : "");
-                    expr += `${Math.abs(parseFloat(eq.B.toFixed(2)))}(<b class="text-slate-800">${parseFloat(pointM.y.toFixed(1))}</b>) `;
+                    expr += `${toAbsFraction(eq.B)}(<b class="text-slate-800">${toFraction(pointM.y)}</b>) `;
                 }
                 if (eq.C !== 0) {
                     let sign = eq.C > 0 ? '+' : '-';
                     expr += expr ? ` ${sign} ` : (eq.C < 0 ? "-" : "");
-                    expr += `${Math.abs(parseFloat(eq.C.toFixed(2)))} `;
+                    expr += `${toAbsFraction(eq.C)} `;
                 }
                 if (!expr) expr = "0 ";
 
@@ -573,7 +632,7 @@
 
                 box.innerHTML = `
                     <div class="truncate text-slate-600 font-mono pr-2 text-xs sm:text-sm">
-                        ${expr} = <strong class="text-slate-900">${parseFloat(val.toFixed(2))}</strong> 
+                        ${expr} = <strong class="text-slate-900">${toFraction(val)}</strong> 
                         <span class="text-blue-600 font-black px-1">${escOp}</span> 0
                     </div>
                     ${icon}
@@ -591,7 +650,6 @@
             updateValidationBoxes();
         }
 
-        // --- TOOLBAR & EVENT LISTENERS ---
         const btnPointer = document.getElementById('toolPointerBtn');
         const btnPan = document.getElementById('toolPanBtn');
         
@@ -616,11 +674,10 @@
 
         document.getElementById('hatchSlider').addEventListener('input', (e) => {
             hatchWeight = parseFloat(e.target.value);
-            initHatching(); // Reset pattern với độ đậm mới
+            initHatching(); 
             drawCanvas();
         });
 
-        // Xử lý Resize Canvas tự động theo 16:9 
         function handleResize() {
             const wrapper = canvas.parentElement;
             const rect = wrapper.getBoundingClientRect();
@@ -638,7 +695,6 @@
         const ro = new ResizeObserver(handleResize);
         ro.observe(canvas.parentElement);
 
-        // Kéo thả & Pan
         function getEventPos(e) {
             const rect = canvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
@@ -653,7 +709,6 @@
             
             if (currentMode === 'POINTER') {
                 const px = mathToPxX(pointM.x), py = mathToPxY(pointM.y);
-                // Hitbox của điểm M
                 if (Math.hypot(lastMouse.x - px, lastMouse.y - py) > 40) isDragging = false; 
             } else {
                 canvas.style.cursor = 'grabbing';
@@ -676,33 +731,29 @@
                 offsetY += (pos.y - lastMouse.y);
                 drawCanvas();
             } else if (currentMode === 'POINTER') {
-                // Tọa độ thực tế của chuột trên hệ trục tọa độ
-                let rawMathX = pxToMathX(pos.x);
-                let rawMathY = pxToMathY(pos.y);
+                // Tự động làm tròn lưới (snap to grid 0.05) để nếu kéo tự do, phân số hiển thị luôn đẹp (vd: 1/2, 3/4)
+                let rawMathX = Math.round(pxToMathX(pos.x) * 20) / 20;
+                let rawMathY = Math.round(pxToMathY(pos.y) * 20) / 20;
                 
                 let snapPoint = { x: rawMathX, y: rawMathY };
                 let bestDist = Infinity;
-                const SNAP_THRESHOLD_PX = 15; // Ngưỡng hút (pixel) - có thể tùy chỉnh
+                const SNAP_THRESHOLD_PX = 15; 
 
-                // 1. Kiểm tra hút vào các đường thẳng BPT
                 parsedEquations.forEach(eq => {
                     let denom = Math.hypot(eq.A, eq.B);
                     if (denom === 0) return;
                     
-                    // Khoảng cách từ chuột đến đường Ax + By + C = 0
                     let mathDist = Math.abs(eq.A * rawMathX + eq.B * rawMathY + eq.C) / denom;
-                    let pxDist = mathDist * scale; // Đổi sang pixel để cảm giác hút đồng đều ở mọi mức zoom
+                    let pxDist = mathDist * scale; 
                     
                     if (pxDist < SNAP_THRESHOLD_PX && pxDist < bestDist) {
                         bestDist = pxDist;
-                        // Tìm hình chiếu vuông góc của chuột lên đường thẳng
                         let factor = (eq.A * rawMathX + eq.B * rawMathY + eq.C) / (denom * denom);
                         snapPoint.x = rawMathX - eq.A * factor;
                         snapPoint.y = rawMathY - eq.B * factor;
                     }
                 });
 
-                // 2. Tùy chọn nâng cao: Hút ưu tiên vào Giao điểm của 2 đường thẳng nếu ở rất gần
                 intersections.forEach(pt => {
                     let mathDist = Math.hypot(pt.x - rawMathX, pt.y - rawMathY);
                     let pxDist = mathDist * scale;
@@ -713,7 +764,6 @@
                     }
                 });
 
-                // Gán tọa độ đã qua xử lý (hút hoặc không hút) cho M
                 pointM.x = snapPoint.x;
                 pointM.y = snapPoint.y;
                 
@@ -735,7 +785,6 @@
         window.addEventListener('touchmove', onPointerMove, {passive: true});
         window.addEventListener('touchend', onPointerUp);
 
-        // --- KHỞI CHẠY LẦN ĐẦU ---
         window.onload = () => {
             renderInputRows(); 
             handleResize(); 
@@ -743,3 +792,4 @@
     </script>
 </body>
 </html>
+```<FollowUp> Thay đổi này có đủ giữ được tính chuẩn xác khi học sinh dùng trên các màn hình có mật độ pixel (DPI) khác nhau không?
