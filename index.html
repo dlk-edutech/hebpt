@@ -63,18 +63,31 @@
             </div>
 
             <div id="dataPanelWrapper">
-                <div class="p-4 md:p-5 flex flex-col gap-4">
+                <div class="p-4 md:p-5 flex flex-col gap-3">
                     <div class="hidden md:flex gap-3 px-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        <div class="w-1/2">Nhập BPT</div>
+                        <div class="w-1/2">Nhập hệ BPT</div>
                         <div class="w-1/2">Kiểm tra tọa độ M(x,y)</div>
                     </div>
+                    
+                    <!-- Danh sách BPT -->
                     <div class="flex flex-col gap-3" id="inputsContainer"></div>
-                    <div class="pt-2">
-                        <button id="addEqBtn" class="flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-semibold rounded-lg border border-blue-200 transition-all text-sm shadow-sm hover:shadow active:scale-95">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                            Thêm bất phương trình
-                        </button>
+
+                    <!-- Khu vực nhập hàm F(x,y) -->
+                    <div class="mt-1 pt-3 border-t border-slate-200 flex flex-col md:flex-row gap-2 md:gap-3 group">
+                        <div class="w-full md:w-1/2 flex items-center bg-indigo-50 border border-indigo-200 rounded-lg overflow-hidden focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-200 shadow-sm transition-all h-[46px]">
+                            <div class="bg-indigo-100 text-indigo-700 font-extrabold px-3 border-r border-indigo-200 text-sm h-full flex items-center justify-center min-w-[75px]">
+                                F(x,y) =
+                            </div>
+                            <input type="text" id="funcInput" value="x + 2y" oninput="updateObjectiveFunc()" class="w-full px-3 py-2 text-indigo-900 font-bold placeholder-indigo-300 bg-transparent text-sm md:text-base outline-none" placeholder="VD: 3x - y">
+                        </div>
+                        
+                        <div class="w-full md:w-1/2">
+                            <div id="funcValid" class="w-full h-[46px] flex items-center bg-indigo-50 border border-indigo-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors text-indigo-800">
+                                <!-- Kết quả F(M) -->
+                            </div>
+                        </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -163,12 +176,11 @@
         const lineColors = ['#334155', '#6d28d9', '#0369a1', '#c2410c', '#be123c', '#15803d', '#a21caf'];
         let hatchPatterns = [];
 
-        // HÀM CHUYỂN ĐỔI SỐ THẬP PHÂN SANG PHÂN SỐ
         function toFraction(val) {
             if (val === undefined || isNaN(val)) return "0";
             if (val === 0 || Math.abs(val) < 1e-9) return "0";
             
-            const tol = 1e-6; // Ngưỡng dung sai
+            const tol = 1e-6; 
             if (Math.abs(val - Math.round(val)) < tol) return Math.round(val).toString();
             
             let sign = val < 0 ? "-" : "";
@@ -191,7 +203,6 @@
                 if (b - a < 1e-9) break; 
                 b = 1 / (b - a);
             }
-            // Dự phòng nếu không ra phân số gọn
             return sign + parseFloat(val.toFixed(3)).toString();
         }
 
@@ -206,19 +217,30 @@
                 const row = document.createElement('div');
                 row.className = "flex flex-col md:flex-row gap-2 md:gap-3 w-full group";
                 
+                const isLast = index === equationsData.length - 1;
+
+                // Nút Xóa (chỉ hiện khi có > 1 dòng BPT)
                 const deleteBtnHtml = equationsData.length > 1 
-                    ? `<button onclick="removeEquation(${index})" class="text-slate-300 hover:text-rose-500 px-3 transition-colors focus:outline-none" title="Xóa BPT">
+                    ? `<button onclick="removeEquation(${index})" class="text-slate-300 hover:text-rose-500 px-3 transition-colors focus:outline-none border-l border-slate-200 h-full flex items-center" title="Xóa BPT">
                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                        </button>`
-                    : `<div class="w-11"></div>`; 
+                    : ``; 
+                
+                // Nút Thêm (chỉ hiển thị ở dòng cuối cùng)
+                const addBtnHtml = isLast 
+                    ? `<button onclick="window.addEquation()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3.5 transition-colors focus:outline-none border-l border-slate-200 h-full flex items-center font-bold text-sm whitespace-nowrap" title="Thêm BPT">
+                           <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg> Thêm
+                       </button>`
+                    : ``;
 
                 row.innerHTML = `
                     <div class="w-full md:w-1/2 flex items-center bg-white border border-slate-300 rounded-lg overflow-hidden focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-200 shadow-sm transition-all h-[46px]">
                         <div class="bg-slate-100 text-slate-500 font-bold px-3 border-r border-slate-200 text-sm h-full flex items-center justify-center min-w-[44px]">
                             ${index + 1}
                         </div>
-                        <input type="text" id="eqInput_${index}" value="${eqStr}" oninput="handleInputChage(${index})" class="w-full px-3 py-2 text-slate-800 font-bold placeholder-slate-300 bg-transparent text-sm md:text-base outline-none" placeholder="VD: 2x - y >= 0">
+                        <input type="text" id="eqInput_${index}" value="${eqStr}" oninput="handleInputChage(${index})" class="w-full px-3 py-2 text-slate-800 font-bold placeholder-slate-300 bg-transparent text-sm md:text-base outline-none min-w-0" placeholder="VD: 2x - y >= 0">
                         ${deleteBtnHtml}
+                        ${addBtnHtml}
                     </div>
                     
                     <div class="w-full md:w-1/2">
@@ -243,7 +265,7 @@
             renderInputRows();
         }
 
-        document.getElementById('addEqBtn').addEventListener('click', () => {
+        window.addEquation = function() {
             equationsData.push(""); 
             renderInputRows();
             setTimeout(() => {
@@ -251,7 +273,7 @@
                 const input = document.getElementById(`eqInput_${newIdx}`);
                 if (input) input.focus();
             }, 50);
-        });
+        }
 
         const toggleBtn = document.getElementById('toggleBtn');
         const toggleText = document.getElementById('toggleText');
@@ -313,7 +335,7 @@
                 let C = lhs.c - rhs.c;
 
                 if (Math.abs(A) < 1e-9 && Math.abs(B) < 1e-9) return null;
-                return { A, B, C, op, idx };
+                return { A, B, C, op, idx, lhs, rhs }; // Lưu trữ cả thông tin 2 vế rời rạc
             } catch (e) {
                 return null; 
             }
@@ -380,7 +402,6 @@
             let startY = Math.floor(pxToMathY(H));
             let endY = Math.ceil(pxToMathY(0));  
             
-            // Vẽ Lưới
             ctx.strokeStyle = '#e2e8f0'; 
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -394,7 +415,6 @@
             }
             ctx.stroke();
 
-            // Vẽ Trục
             ctx.strokeStyle = '#1e293b'; 
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -437,7 +457,6 @@
                 ctx.fillText('x', W - (canvasFontSize + 4), oy + (canvasFontSize + 6));
             }
 
-            // Vẽ Bất Phương Trình
             parsedEquations.forEach(eq => {
                 let { A, B, C, op, idx } = eq;
                 const FAR = 10000;
@@ -543,7 +562,6 @@
                 }
             });
 
-            // Vẽ Giao Điểm
             ctx.textBaseline = 'bottom';
             intersections.forEach(pt => {
                 let px = mathToPxX(pt.x), py = mathToPxY(pt.y);
@@ -553,7 +571,6 @@
                 ctx.fillStyle = '#0f172a'; ctx.fill();
                 ctx.lineWidth = 2; ctx.strokeStyle = '#ffffff'; ctx.stroke();
 
-                // Hiển thị tọa độ dưới dạng phân số
                 let txt = `(${toFraction(pt.x)}, ${toFraction(pt.y)})`;
                 ctx.font = `600 ${canvasFontSize}px Inter`;
                 ctx.textAlign = pt.x >= 0 ? 'right' : 'left';
@@ -565,7 +582,6 @@
                 ctx.fillText(txt, px + off, py - 6);
             });
 
-            // Vẽ Điểm M
             let mx = mathToPxX(pointM.x), my = mathToPxY(pointM.y);
             ctx.beginPath(); ctx.arc(mx, my, 8, 0, Math.PI * 2);
             ctx.fillStyle = '#ef4444'; 
@@ -574,13 +590,70 @@
 
             ctx.font = `800 ${canvasFontSize + 2}px Inter`;
             ctx.textAlign = 'left';
-            // Hiển thị tọa độ M dưới dạng phân số
             let mTxt = `M(${toFraction(pointM.x)}, ${toFraction(pointM.y)})`;
             ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.9)';
             ctx.strokeText(mTxt, mx + 12, my - 8);
             ctx.fillStyle = '#b91c1c';
             ctx.fillText(mTxt, mx + 12, my - 8);
         }
+
+        window.updateObjectiveFunc = function() {
+            let box = document.getElementById('funcValid');
+            let funcStr = document.getElementById('funcInput').value.trim();
+            
+            if (!funcStr) {
+                box.innerHTML = `<span class="truncate text-sm font-medium text-slate-400">Chưa nhập hàm F(x,y)</span>`;
+                box.className = "w-full h-[46px] flex items-center bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 overflow-hidden";
+                return;
+            }
+
+            let a = 0, b = 0, c = 0;
+            let terms = funcStr.replace(/\s+/g, '').replace(/-/g, '+-').split('+');
+            let valid = true;
+            for (let t of terms) {
+                if (!t) continue;
+                if (t.includes('x')) {
+                    let val = t.replace('x', '');
+                    a += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
+                } else if (t.includes('y')) {
+                    let val = t.replace('y', '');
+                    b += (val === '' || val === '+') ? 1 : (val === '-') ? -1 : (parseFloat(val) || 0);
+                } else if (!isNaN(parseFloat(t))) {
+                    c += parseFloat(t);
+                } else {
+                    valid = false;
+                }
+            }
+
+            if (!valid) {
+                box.innerHTML = `<span class="text-rose-500 font-bold text-sm">Lỗi cú pháp</span>`;
+                box.className = "w-full h-[46px] flex items-center bg-rose-50 border border-rose-200 rounded-lg px-4 py-2 overflow-hidden";
+                return;
+            }
+
+            let val = a * pointM.x + b * pointM.y + c;
+            
+            let expr = "";
+            if (a !== 0) expr += `${toFraction(a)}(<b class="text-indigo-900">${toFraction(pointM.x)}</b>) `;
+            if (b !== 0) {
+                let sign = b > 0 ? '+' : '-';
+                expr += expr ? ` ${sign} ` : (b < 0 ? "-" : "");
+                expr += `${toAbsFraction(b)}(<b class="text-indigo-900">${toFraction(pointM.y)}</b>) `;
+            }
+            if (c !== 0) {
+                let sign = c > 0 ? '+' : '-';
+                expr += expr ? ` ${sign} ` : (c < 0 ? "-" : "");
+                expr += `${toAbsFraction(c)} `;
+            }
+            if (!expr) expr = "0 ";
+
+            box.innerHTML = `
+                <div class="truncate text-indigo-700 font-mono pr-2 text-xs sm:text-sm">
+                    F(M) = ${expr} = <strong class="text-indigo-900 text-base md:text-lg ml-1">${toFraction(val)}</strong>
+                </div>
+            `;
+            box.className = "w-full h-[46px] flex items-center bg-indigo-50 border border-indigo-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors";
+        };
 
         function updateValidationBoxes() {
             equationsData.forEach((str, i) => {
@@ -601,30 +674,44 @@
                     return; 
                 }
 
-                let val = eq.A * pointM.x + eq.B * pointM.y + eq.C;
+                // Tính toán giá trị 2 vế LHS và RHS rời rạc
+                let valLhs = eq.lhs.a * pointM.x + eq.lhs.b * pointM.y + eq.lhs.c;
+                let valRhs = eq.rhs.a * pointM.x + eq.rhs.b * pointM.y + eq.rhs.c;
+                
                 let valid = false;
                 const eps = 1e-6; 
-                if (eq.op === '<=') valid = val <= eps;
-                if (eq.op === '>=') valid = val >= -eps;
-                if (eq.op === '<') valid = val < -eps;
-                if (eq.op === '>') valid = val > eps;
+                if (eq.op === '<=') valid = valLhs <= valRhs + eps;
+                if (eq.op === '>=') valid = valLhs >= valRhs - eps;
+                if (eq.op === '<') valid = valLhs < valRhs - eps;
+                if (eq.op === '>') valid = valLhs > valRhs + eps;
 
                 let escOp = eq.op.replace('<', '&lt;').replace('>', '&gt;');
                 
-                // Trình bày biểu thức bằng phân số thay vì số thập phân
-                let expr = "";
-                if (eq.A !== 0) expr += `${toFraction(eq.A)}(<b class="text-slate-800">${toFraction(pointM.x)}</b>) `;
-                if (eq.B !== 0) {
-                    let sign = eq.B > 0 ? '+' : '-';
-                    expr += expr ? ` ${sign} ` : (eq.B < 0 ? "-" : "");
-                    expr += `${toAbsFraction(eq.B)}(<b class="text-slate-800">${toFraction(pointM.y)}</b>) `;
+                // Hàm định dạng biểu thức cho 1 vế
+                function formatExpr(side) {
+                    let expr = "";
+                    if (side.a !== 0) expr += `${toFraction(side.a)}(<b class="text-slate-800">${toFraction(pointM.x)}</b>) `;
+                    if (side.b !== 0) {
+                        let sign = side.b > 0 ? '+' : '-';
+                        expr += expr ? ` ${sign} ` : (side.b < 0 ? "-" : "");
+                        expr += `${toAbsFraction(side.b)}(<b class="text-slate-800">${toFraction(pointM.y)}</b>) `;
+                    }
+                    if (side.c !== 0) {
+                        let sign = side.c > 0 ? '+' : '-';
+                        expr += expr ? ` ${sign} ` : (side.c < 0 ? "-" : "");
+                        expr += `${toAbsFraction(side.c)} `;
+                    }
+                    return expr.trim() || "0";
                 }
-                if (eq.C !== 0) {
-                    let sign = eq.C > 0 ? '+' : '-';
-                    expr += expr ? ` ${sign} ` : (eq.C < 0 ? "-" : "");
-                    expr += `${toAbsFraction(eq.C)} `;
-                }
-                if (!expr) expr = "0 ";
+
+                let exprLhs = formatExpr(eq.lhs);
+                let exprRhs = formatExpr(eq.rhs);
+                
+                let lhsIsConst = eq.lhs.a === 0 && eq.lhs.b === 0;
+                let rhsIsConst = eq.rhs.a === 0 && eq.rhs.b === 0;
+
+                let strLhs = lhsIsConst ? `<strong class="text-slate-900">${toFraction(valLhs)}</strong>` : `${exprLhs} = <strong class="text-slate-900">${toFraction(valLhs)}</strong>`;
+                let strRhs = rhsIsConst ? `<strong class="text-slate-900">${toFraction(valRhs)}</strong>` : `${exprRhs} = <strong class="text-slate-900">${toFraction(valRhs)}</strong>`;
 
                 let icon = valid 
                     ? `<div class="text-emerald-600 shrink-0"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>`
@@ -632,8 +719,7 @@
 
                 box.innerHTML = `
                     <div class="truncate text-slate-600 font-mono pr-2 text-xs sm:text-sm">
-                        ${expr} = <strong class="text-slate-900">${toFraction(val)}</strong> 
-                        <span class="text-blue-600 font-black px-1">${escOp}</span> 0
+                        ${strLhs} <span class="text-blue-600 font-black px-1">${escOp}</span> ${strRhs}
                     </div>
                     ${icon}
                 `;
@@ -642,6 +728,8 @@
                     ? "w-full h-[46px] flex items-center justify-between bg-emerald-50 border border-emerald-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors"
                     : "w-full h-[46px] flex items-center justify-between bg-rose-50 border border-rose-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors";
             });
+            
+            updateObjectiveFunc();
         }
 
         function updateSystem() {
@@ -731,28 +819,13 @@
                 offsetY += (pos.y - lastMouse.y);
                 drawCanvas();
             } else if (currentMode === 'POINTER') {
-                // Tự động làm tròn lưới (snap to grid 0.05) để nếu kéo tự do, phân số hiển thị luôn đẹp (vd: 1/2, 3/4)
                 let rawMathX = Math.round(pxToMathX(pos.x) * 20) / 20;
                 let rawMathY = Math.round(pxToMathY(pos.y) * 20) / 20;
                 
                 let snapPoint = { x: rawMathX, y: rawMathY };
                 let bestDist = Infinity;
                 const SNAP_THRESHOLD_PX = 15; 
-
-                parsedEquations.forEach(eq => {
-                    let denom = Math.hypot(eq.A, eq.B);
-                    if (denom === 0) return;
-                    
-                    let mathDist = Math.abs(eq.A * rawMathX + eq.B * rawMathY + eq.C) / denom;
-                    let pxDist = mathDist * scale; 
-                    
-                    if (pxDist < SNAP_THRESHOLD_PX && pxDist < bestDist) {
-                        bestDist = pxDist;
-                        let factor = (eq.A * rawMathX + eq.B * rawMathY + eq.C) / (denom * denom);
-                        snapPoint.x = rawMathX - eq.A * factor;
-                        snapPoint.y = rawMathY - eq.B * factor;
-                    }
-                });
+                let snappedToIntersection = false;
 
                 intersections.forEach(pt => {
                     let mathDist = Math.hypot(pt.x - rawMathX, pt.y - rawMathY);
@@ -761,8 +834,26 @@
                         bestDist = pxDist;
                         snapPoint.x = pt.x;
                         snapPoint.y = pt.y;
+                        snappedToIntersection = true; 
                     }
                 });
+
+                if (!snappedToIntersection) {
+                    parsedEquations.forEach(eq => {
+                        let denom = Math.hypot(eq.A, eq.B);
+                        if (denom === 0) return;
+                        
+                        let mathDist = Math.abs(eq.A * rawMathX + eq.B * rawMathY + eq.C) / denom;
+                        let pxDist = mathDist * scale; 
+                        
+                        if (pxDist < SNAP_THRESHOLD_PX && pxDist < bestDist) {
+                            bestDist = pxDist;
+                            let factor = (eq.A * rawMathX + eq.B * rawMathY + eq.C) / (denom * denom);
+                            snapPoint.x = rawMathX - eq.A * factor;
+                            snapPoint.y = rawMathY - eq.B * factor;
+                        }
+                    });
+                }
 
                 pointM.x = snapPoint.x;
                 pointM.y = snapPoint.y;
@@ -792,4 +883,3 @@
     </script>
 </body>
 </html>
-```<FollowUp> Thay đổi này có đủ giữ được tính chuẩn xác khi học sinh dùng trên các màn hình có mật độ pixel (DPI) khác nhau không?
