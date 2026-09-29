@@ -335,7 +335,7 @@
                 let C = lhs.c - rhs.c;
 
                 if (Math.abs(A) < 1e-9 && Math.abs(B) < 1e-9) return null;
-                return { A, B, C, op, idx, lhs, rhs }; // Lưu trữ cả thông tin 2 vế rời rạc
+                return { A, B, C, op, idx, lhs, rhs }; 
             } catch (e) {
                 return null; 
             }
@@ -647,9 +647,18 @@
             }
             if (!expr) expr = "0 ";
 
+            let fracStr = toFraction(val);
+            let decStr = parseFloat(val.toFixed(3)).toString();
+            let displayResult = `<strong class="text-indigo-900 text-base md:text-lg ml-1">${fracStr}</strong>`;
+            
+            // Thêm phần thập phân nếu kết quả là phân số
+            if (fracStr.includes('/')) {
+                displayResult += `<span class="text-indigo-500 font-semibold ml-1.5 text-sm">≈ ${decStr}</span>`;
+            }
+
             box.innerHTML = `
                 <div class="truncate text-indigo-700 font-mono pr-2 text-xs sm:text-sm">
-                    F(M) = ${expr} = <strong class="text-indigo-900 text-base md:text-lg ml-1">${toFraction(val)}</strong>
+                    F(M) = ${expr} = ${displayResult}
                 </div>
             `;
             box.className = "w-full h-[46px] flex items-center bg-indigo-50 border border-indigo-300 rounded-lg px-4 py-2 overflow-hidden shadow-sm transition-colors";
@@ -674,7 +683,6 @@
                     return; 
                 }
 
-                // Tính toán giá trị 2 vế LHS và RHS rời rạc
                 let valLhs = eq.lhs.a * pointM.x + eq.lhs.b * pointM.y + eq.lhs.c;
                 let valRhs = eq.rhs.a * pointM.x + eq.rhs.b * pointM.y + eq.rhs.c;
                 
@@ -687,7 +695,6 @@
 
                 let escOp = eq.op.replace('<', '&lt;').replace('>', '&gt;');
                 
-                // Hàm định dạng biểu thức cho 1 vế
                 function formatExpr(side) {
                     let expr = "";
                     if (side.a !== 0) expr += `${toFraction(side.a)}(<b class="text-slate-800">${toFraction(pointM.x)}</b>) `;
