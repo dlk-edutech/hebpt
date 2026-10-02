@@ -176,6 +176,25 @@
         const lineColors = ['#334155', '#6d28d9', '#0369a1', '#c2410c', '#be123c', '#15803d', '#a21caf'];
         let hatchPatterns = [];
 
+        // HÀM TÍNH TOÁN BƯỚC NHẢY (GRID STEP) DỰA THEO SCALE
+        function getGridStep(currentScale) {
+            let rawStep = 60 / currentScale; // Mục tiêu khoảng cách giữa 2 vạch ~ 60px
+            let mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+            let norm = rawStep / mag;
+            
+            let step;
+            if (norm < 1.5) step = 1;
+            else if (norm < 3.5) step = 2;
+            else if (norm < 7.5) step = 5;
+            else step = 10;
+            
+            return step * mag;
+        }
+
+        function formatNumberToDisplay(num) {
+            return parseFloat(num.toFixed(4)).toString();
+        }
+
         function toFraction(val) {
             if (val === undefined || isNaN(val)) return "0";
             if (val === 0 || Math.abs(val) < 1e-9) return "0";
@@ -219,14 +238,12 @@
                 
                 const isLast = index === equationsData.length - 1;
 
-                // Nút Xóa (chỉ hiện khi có > 1 dòng BPT)
                 const deleteBtnHtml = equationsData.length > 1 
                     ? `<button onclick="removeEquation(${index})" class="text-slate-300 hover:text-rose-500 px-3 transition-colors focus:outline-none border-l border-slate-200 h-full flex items-center" title="Xóa BPT">
                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                        </button>`
                     : ``; 
                 
-                // Nút Thêm (chỉ hiển thị ở dòng cuối cùng)
                 const addBtnHtml = isLast 
                     ? `<button onclick="window.addEquation()" class="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3.5 transition-colors focus:outline-none border-l border-slate-200 h-full flex items-center font-bold text-sm whitespace-nowrap" title="Thêm BPT">
                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg> Thêm
@@ -397,24 +414,30 @@
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, W, H);
             
-            let startX = Math.floor(pxToMathX(0));
-            let endX = Math.ceil(pxToMathX(W));
-            let startY = Math.floor(pxToMathY(H));
-            let endY = Math.ceil(pxToMathY(0));  
+            let gridStep = getGridStep(scale);
+
+            let startX = Math.floor(pxToMathX(0) / gridStep) * gridStep;
+            let endX = Math.ceil(pxToMathX(W) / gridStep) * gridStep;
+            let startY = Math.floor(pxToMathY(H) / gridStep) * gridStep;
+            let endY = Math.ceil(pxToMathY(0) / gridStep) * gridStep;  
             
             ctx.strokeStyle = '#e2e8f0'; 
             ctx.lineWidth = 1;
             ctx.beginPath();
-            for(let i = startX; i <= endX; i++) { 
+            
+            // Lưới dọc
+            for(let i = startX; i <= endX + 1e-9; i += gridStep) { 
                 let px = mathToPxX(i); 
                 ctx.moveTo(px, 0); ctx.lineTo(px, H); 
             }
-            for(let i = startY; i <= endY; i++) { 
+            // Lưới ngang
+            for(let i = startY; i <= endY + 1e-9; i += gridStep) { 
                 let py = mathToPxY(i); 
                 ctx.moveTo(0, py); ctx.lineTo(W, py); 
             }
             ctx.stroke();
 
+            // Trục tọa độ chính
             ctx.strokeStyle = '#1e293b'; 
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -423,24 +446,25 @@
             if (oy > 0 && oy < H) { ctx.moveTo(0, oy); ctx.lineTo(W, oy); }
             ctx.stroke();
 
+            // Số liệu trên các trục
             ctx.fillStyle = '#1e293b';
             ctx.font = `600 ${canvasFontSize}px Inter`; 
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             
-            for(let i = startX; i <= endX; i++) {
-                if(i === 0) continue;
+            for(let i = startX; i <= endX + 1e-9; i += gridStep) {
+                if(Math.abs(i) < 1e-9) continue;
                 let px = mathToPxX(i);
                 if (px > 0 && px < W && oy > 0 && oy < H) {
-                    ctx.fillText(i, px, oy + canvasFontSize + 4);
+                    ctx.fillText(formatNumberToDisplay(i), px, oy + canvasFontSize + 4);
                     ctx.beginPath(); ctx.moveTo(px, oy-4); ctx.lineTo(px, oy+4); ctx.stroke();
                 }
             }
-            for(let i = startY; i <= endY; i++) {
-                if(i === 0) continue;
+            for(let i = startY; i <= endY + 1e-9; i += gridStep) {
+                if(Math.abs(i) < 1e-9) continue;
                 let py = mathToPxY(i);
                 if (py > 0 && py < H && ox > 0 && ox < W) {
-                    ctx.fillText(i, ox - canvasFontSize - 6, py);
+                    ctx.fillText(formatNumberToDisplay(i), ox - canvasFontSize - 6, py);
                     ctx.beginPath(); ctx.moveTo(ox-4, py); ctx.lineTo(ox+4, py); ctx.stroke();
                 }
             }
@@ -651,7 +675,6 @@
             let decStr = parseFloat(val.toFixed(3)).toString();
             let displayResult = `<strong class="text-indigo-900 text-base md:text-lg ml-1">${fracStr}</strong>`;
             
-            // Thêm phần thập phân nếu kết quả là phân số
             if (fracStr.includes('/')) {
                 displayResult += `<span class="text-indigo-500 font-semibold ml-1.5 text-sm">≈ ${decStr}</span>`;
             }
